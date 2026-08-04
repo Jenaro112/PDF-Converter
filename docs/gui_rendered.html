@@ -1,0 +1,1098 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="UTF-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Literata:opsz,wght@7..72,300;7..72,400;7..72,500;7..72,600;7..72,700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
+
+:root {
+  --preview-body-bg: #f3f4f6;
+  --page-bg: #ffffff;
+  --text-color: #1f2937;
+  --heading-color: #111827;
+  --accent-color: #2563eb;
+  --muted-color: #4b5563;
+  --font-family-content: 'Inter', 'Roboto', 'Helvetica Neue', sans-serif;
+  --font-family-headings: 'Inter', sans-serif;
+  --code-bg: #f9fafb;
+  --code-border: #e5e7eb;
+  --code-color: #1f2937;
+  --quote-border: #2563eb;
+  --quote-bg: #f3f4f6;
+  --table-header-bg: #1f2937;
+  --table-header-fg: #ffffff;
+  --table-border: #e5e7eb;
+  --table-row-even-bg: #f9fafb;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+}
+
+body {
+  background: var(--preview-body-bg);
+  padding: 40px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  box-sizing: border-box;
+  background: var(--page-bg);
+  padding: 22mm;
+  margin-bottom: 40px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  font-family: var(--font-family-content);
+  font-size: 11pt;
+  line-height: 1.6;
+  color: var(--text-color);
+  text-align: justify;
+  flex-shrink: 0;
+  break-inside: avoid;
+}
+
+/* Portada de previsualización */
+.cover-page {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 40mm 22mm !important;
+}
+.cover-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+.cover-page h1 {
+  font-family: var(--font-family-headings);
+  font-size: 30pt;
+  font-weight: 700;
+  margin-bottom: 8mm;
+  color: var(--heading-color);
+  border: none;
+  padding: 0;
+  line-height: 1.2;
+}
+.cover-page .subtitle {
+  font-family: var(--font-family-content);
+  font-size: 16pt;
+  font-weight: 300;
+  font-style: italic;
+  margin-bottom: 20mm;
+  color: var(--muted-color);
+}
+.cover-page .meta {
+  font-family: var(--font-family-headings);
+  font-size: 10.5pt;
+  color: var(--muted-color);
+  line-height: 2.2;
+}
+.cover-page .meta strong {
+  color: var(--text-color);
+}
+
+.content {
+  display: block !important;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-headings);
+  color: var(--heading-color);
+  page-break-after: avoid !important;
+  break-after: avoid !important;
+  break-inside: avoid !important;
+  margin-top: 0;
+}
+h1:first-child, h2:first-child { margin-top: 0; }
+h1 { font-size: 20pt; font-weight: 700; margin-top: 12mm; margin-bottom: 5mm; border-bottom: 2px solid var(--heading-color); padding-bottom: 2mm; }
+h2 { font-size: 14pt; font-weight: 600; margin-top: 8mm; margin-bottom: 4mm; }
+h3 { font-size: 12pt; font-weight: 600; margin-top: 6mm; margin-bottom: 3mm; font-style: italic; }
+p {
+  margin-bottom: 3mm;
+  orphans: 3;
+  widows: 3;
+  page-break-inside: auto !important;
+  break-inside: auto !important;
+}
+blockquote, .codehilite, .highlight, pre {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + * {
+  page-break-before: avoid !important;
+  break-before: avoid !important;
+}
+p + .codehilite, p + .highlight, p + pre, p + table, p + blockquote, p + .math-display, p + ul, p + ol {
+  page-break-before: avoid !important;
+  break-before: avoid !important;
+}
+ul, ol {
+  margin: 3mm 0 3mm 8mm;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+li {
+  margin-bottom: 1.5mm;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+code { word-break: break-word; }
+ul ul, ul ol, ol ul, ol ol { margin-left: 2rem; page-break-inside: avoid !important; break-inside: avoid !important; }
+li > ul, li > ol { page-break-before: avoid !important; break-before: avoid !important; }
+.task-list-item { list-style-type: none; }
+.task-list-item input[type="checkbox"] { margin-right: 6px; transform: scale(1.1); }
+strong { color: var(--heading-color); }
+del { text-decoration: line-through; color: var(--muted-color); }
+sup { font-size: 0.72em; vertical-align: super; }
+sub { font-size: 0.72em; vertical-align: sub; }
+table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin: 4mm 0;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+tr {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+thead {
+  display: table-header-group;
+}
+th, td { border: 1px solid var(--table-border); padding: 2mm 3mm; text-align: left; word-break: break-word; }
+th { background-color: var(--table-header-bg); color: var(--table-header-fg); font-family: var(--font-family-headings); font-weight: 600; }
+tr:nth-child(even) { background-color: var(--table-row-even-bg); }
+.keep-together { page-break-inside: avoid !important; break-inside: avoid !important; }
+
+
+pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.codehilite .hll { background-color: #49483e }
+.codehilite { background: #272822; color: #F8F8F2 }
+.codehilite .c { color: #959077 } /* Comment */
+.codehilite .err { color: #ED007E; background-color: #1E0010 } /* Error */
+.codehilite .esc { color: #F8F8F2 } /* Escape */
+.codehilite .g { color: #F8F8F2 } /* Generic */
+.codehilite .k { color: #66D9EF } /* Keyword */
+.codehilite .l { color: #AE81FF } /* Literal */
+.codehilite .n { color: #F8F8F2 } /* Name */
+.codehilite .o { color: #FF4689 } /* Operator */
+.codehilite .x { color: #F8F8F2 } /* Other */
+.codehilite .p { color: #F8F8F2 } /* Punctuation */
+.codehilite .ch { color: #959077 } /* Comment.Hashbang */
+.codehilite .cm { color: #959077 } /* Comment.Multiline */
+.codehilite .cp { color: #959077 } /* Comment.Preproc */
+.codehilite .cpf { color: #959077 } /* Comment.PreprocFile */
+.codehilite .c1 { color: #959077 } /* Comment.Single */
+.codehilite .cs { color: #959077 } /* Comment.Special */
+.codehilite .gd { color: #FF4689 } /* Generic.Deleted */
+.codehilite .ge { color: #F8F8F2; font-style: italic } /* Generic.Emph */
+.codehilite .ges { color: #F8F8F2; font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.codehilite .gr { color: #F8F8F2 } /* Generic.Error */
+.codehilite .gh { color: #F8F8F2 } /* Generic.Heading */
+.codehilite .gi { color: #A6E22E } /* Generic.Inserted */
+.codehilite .go { color: #66D9EF } /* Generic.Output */
+.codehilite .gp { color: #FF4689; font-weight: bold } /* Generic.Prompt */
+.codehilite .gs { color: #F8F8F2; font-weight: bold } /* Generic.Strong */
+.codehilite .gu { color: #959077 } /* Generic.Subheading */
+.codehilite .gt { color: #F8F8F2 } /* Generic.Traceback */
+.codehilite .kc { color: #66D9EF } /* Keyword.Constant */
+.codehilite .kd { color: #66D9EF } /* Keyword.Declaration */
+.codehilite .kn { color: #FF4689 } /* Keyword.Namespace */
+.codehilite .kp { color: #66D9EF } /* Keyword.Pseudo */
+.codehilite .kr { color: #66D9EF } /* Keyword.Reserved */
+.codehilite .kt { color: #66D9EF } /* Keyword.Type */
+.codehilite .ld { color: #E6DB74 } /* Literal.Date */
+.codehilite .m { color: #AE81FF } /* Literal.Number */
+.codehilite .s { color: #E6DB74 } /* Literal.String */
+.codehilite .na { color: #A6E22E } /* Name.Attribute */
+.codehilite .nb { color: #F8F8F2 } /* Name.Builtin */
+.codehilite .nc { color: #A6E22E } /* Name.Class */
+.codehilite .no { color: #66D9EF } /* Name.Constant */
+.codehilite .nd { color: #A6E22E } /* Name.Decorator */
+.codehilite .ni { color: #F8F8F2 } /* Name.Entity */
+.codehilite .ne { color: #A6E22E } /* Name.Exception */
+.codehilite .nf { color: #A6E22E } /* Name.Function */
+.codehilite .nl { color: #F8F8F2 } /* Name.Label */
+.codehilite .nn { color: #F8F8F2 } /* Name.Namespace */
+.codehilite .nx { color: #A6E22E } /* Name.Other */
+.codehilite .py { color: #F8F8F2 } /* Name.Property */
+.codehilite .nt { color: #FF4689 } /* Name.Tag */
+.codehilite .nv { color: #F8F8F2 } /* Name.Variable */
+.codehilite .ow { color: #FF4689 } /* Operator.Word */
+.codehilite .pm { color: #F8F8F2 } /* Punctuation.Marker */
+.codehilite .w { color: #F8F8F2 } /* Text.Whitespace */
+.codehilite .mb { color: #AE81FF } /* Literal.Number.Bin */
+.codehilite .mf { color: #AE81FF } /* Literal.Number.Float */
+.codehilite .mh { color: #AE81FF } /* Literal.Number.Hex */
+.codehilite .mi { color: #AE81FF } /* Literal.Number.Integer */
+.codehilite .mo { color: #AE81FF } /* Literal.Number.Oct */
+.codehilite .sa { color: #E6DB74 } /* Literal.String.Affix */
+.codehilite .sb { color: #E6DB74 } /* Literal.String.Backtick */
+.codehilite .sc { color: #E6DB74 } /* Literal.String.Char */
+.codehilite .dl { color: #E6DB74 } /* Literal.String.Delimiter */
+.codehilite .sd { color: #E6DB74 } /* Literal.String.Doc */
+.codehilite .s2 { color: #E6DB74 } /* Literal.String.Double */
+.codehilite .se { color: #AE81FF } /* Literal.String.Escape */
+.codehilite .sh { color: #E6DB74 } /* Literal.String.Heredoc */
+.codehilite .si { color: #E6DB74 } /* Literal.String.Interpol */
+.codehilite .sx { color: #E6DB74 } /* Literal.String.Other */
+.codehilite .sr { color: #E6DB74 } /* Literal.String.Regex */
+.codehilite .s1 { color: #E6DB74 } /* Literal.String.Single */
+.codehilite .ss { color: #E6DB74 } /* Literal.String.Symbol */
+.codehilite .bp { color: #F8F8F2 } /* Name.Builtin.Pseudo */
+.codehilite .fm { color: #A6E22E } /* Name.Function.Magic */
+.codehilite .vc { color: #F8F8F2 } /* Name.Variable.Class */
+.codehilite .vg { color: #F8F8F2 } /* Name.Variable.Global */
+.codehilite .vi { color: #F8F8F2 } /* Name.Variable.Instance */
+.codehilite .vm { color: #F8F8F2 } /* Name.Variable.Magic */
+.codehilite .il { color: #AE81FF } /* Literal.Number.Integer.Long */
+
+.codehilite, .highlight {
+  background: var(--code-bg) !important;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 12px 0;
+  overflow-x: auto;
+  border: 1px solid var(--code-border);
+  font-size: 9pt;
+  line-height: 1.25;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+.codehilite pre, .highlight pre {
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+.codehilite code, .highlight code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+  font-size: 9pt;
+  color: var(--code-color);
+  background: transparent !important;
+  padding: 0;
+  border-radius: 0;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+.codehilite .linenos, .highlight .linenos {
+  color: var(--muted-color);
+  padding-right: 12px;
+  margin-right: 12px;
+  border-right: 1px solid var(--code-border);
+  user-select: none;
+  text-align: right;
+  font-size: 8.5pt;
+}
+
+:not(pre) > code {
+  background: var(--code-bg);
+  color: var(--accent-color);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+  font-size: 8.5pt;
+  border: 1px solid var(--code-border);
+}
+
+code { background: transparent; }
+
+blockquote {
+  margin: 5mm 0;
+  padding: 3mm 0 3mm 6mm;
+  border-left: 6px solid var(--quote-border);
+  background-color: var(--quote-bg);
+  border-radius: 2px;
+  font-style: italic;
+  color: var(--muted-color);
+  line-height: 1.7;
+}
+
+blockquote blockquote {
+  margin: 2mm 0 2mm 4mm;
+  border-left-color: var(--quote-border);
+  font-size: 0.95em;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4mm 0;
+}
+
+th, td {
+  border: 1px solid var(--table-border);
+  padding: 2mm 3mm;
+  text-align: left;
+}
+
+th {
+  background-color: var(--table-header-bg);
+  color: var(--table-header-fg);
+  font-family: var(--font-family-headings);
+  font-weight: 600;
+}
+
+tr:nth-child(even) {
+  background-color: var(--table-row-even-bg);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 8mm auto;
+}
+
+.math-display {
+  text-align: center;
+  margin: 4mm 0;
+  overflow-x: auto;
+}
+
+.math-inline {
+  white-space: nowrap;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--accent-color);
+  opacity: 0.3;
+  margin: 6mm 0;
+}
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="page cover-page">
+  <div class="cover-content">
+    <h1>🧪 Test Integral — Generador PDF</h1>
+    
+    
+  </div>
+</div>
+
+
+<script defer="" src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer="" src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: &quot;$$&quot;, right: &quot;$$&quot;, display: true},
+      {left: &quot;$&quot;, right: &quot;$&quot;, display: false}
+    ],
+    ignoredTags: [&quot;script&quot;, &quot;noscript&quot;, &quot;style&quot;, &quot;textarea&quot;, &quot;pre&quot;, &quot;code&quot;],
+    throwOnError: false
+  }); window.katexRendered = true; if(window.runPagination) window.runPagination();"></script>
+<script>
+(function() {
+  'use strict';
+  window.katexRendered = window.katexRendered || false;
+  window.paginationDone = false;
+
+  function paginate() {
+    if (window.paginationDone) return;
+    window.paginationDone = true;
+    
+    var src = document.getElementById('paginate-content');
+    if (!src || !src.children.length) return;
+    var children = Array.from(src.children);
+    src.remove();
+    var ruler = document.createElement('div');
+    ruler.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;padding:0 22mm;box-sizing:border-box;overflow:hidden;font-family:inherit;font-size:inherit;line-height:inherit;';
+    document.body.appendChild(ruler);
+    var pagePx = 956;
+    var page = document.createElement('div');
+    page.className = 'page';
+    document.body.appendChild(page);
+    var buf = [];
+    for (var i = 0; i < children.length; i++) {
+      var el = children[i];
+      var clone = el.cloneNode(true);
+      ruler.appendChild(clone);
+      if (ruler.scrollHeight > pagePx) {
+        ruler.removeChild(clone);
+        if (buf.length === 0) {
+          page.appendChild(el);
+        } else {
+          var orphans = [];
+          function shouldPop() {
+            if (buf.length === 0) return false;
+            var last = buf[buf.length - 1];
+            var tag = last.tagName || '';
+            if (/^H[1-6]$/.test(tag)) return true;
+            if (tag === 'P') {
+              var nextEl = orphans.length > 0 ? orphans[0] : el;
+              var nextTag = nextEl.tagName || '';
+              var nextClass = nextEl.className || '';
+              if (
+                nextTag === 'TABLE' ||
+                nextTag === 'BLOCKQUOTE' ||
+                nextTag === 'UL' ||
+                nextTag === 'OL' ||
+                nextClass.indexOf('codehilite') !== -1 ||
+                nextClass.indexOf('highlight') !== -1 ||
+                nextClass.indexOf('math-display') !== -1 ||
+                nextEl.querySelector('.katex-display') !== null
+              ) {
+                return true;
+              }
+            }
+            return false;
+          }
+          while (shouldPop()) {
+            orphans.unshift(buf.pop());
+          }
+          if (buf.length === 0) {
+            for (var j = 0; j < orphans.length; j++) {
+              buf.push(orphans[j]);
+            }
+            page.appendChild(el);
+            buf.push(el);
+          } else {
+            for (var j = 0; j < buf.length; j++) page.appendChild(buf[j]);
+            buf = [];
+            page = document.createElement('div');
+            page.className = 'page';
+            document.body.appendChild(page);
+            ruler.innerHTML = '';
+            for (var j = 0; j < orphans.length; j++) {
+              ruler.appendChild(orphans[j].cloneNode(true));
+              buf.push(orphans[j]);
+            }
+            ruler.appendChild(clone);
+            buf.push(el);
+          }
+        }
+      } else {
+        buf.push(el);
+      }
+    }
+    for (var j = 0; j < buf.length; j++) page.appendChild(buf[j]);
+    document.body.removeChild(ruler);
+  }
+
+  window.runPagination = function() {
+    if (document.readyState === 'complete' && window.katexRendered) {
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(paginate);
+      } else {
+        paginate();
+      }
+    }
+  };
+
+  // Run on window load
+  window.addEventListener('load', window.runPagination);
+
+  // Fallback in case load event already fired or KaTeX loads later
+  if (document.readyState === 'complete') {
+    window.runPagination();
+  }
+  
+  // Extra fallback timeout to guarantee pagination runs even if KaTeX script fails to load
+  setTimeout(function() {
+    window.katexRendered = true;
+    window.runPagination();
+  }, 1500);
+})();
+</script>
+
+
+<div class="page"><blockquote>
+<p>Archivo de prueba extrema para validar el conversor <strong>md2pdf.py</strong>
+Cubre: títulos, formato, listas, imágenes, tablas, citas, código y LaTeX.</p>
+</blockquote><hr><h2 style="page-break-after:avoid;break-after:avoid-page;">1. Títulos (H1 a H6)</h2><h1 style="page-break-after:avoid;break-after:avoid-page;">H1 — Título principal</h1><h2 style="page-break-after:avoid;break-after:avoid-page;">H2 — Sección</h2><h3 style="page-break-after:avoid;break-after:avoid-page;">H3 — Subsección</h3><h4 style="page-break-after:avoid;break-after:avoid-page;">H4 — Detalle</h4><h5 style="page-break-after:avoid;break-after:avoid-page;">H5 — Sub-detalle</h5><h6 style="page-break-after:avoid;break-after:avoid-page;">H6 — Nota al pie</h6><hr><h2 style="page-break-after:avoid;break-after:avoid-page;">2. Formato de texto</h2><p>Párrafo normal con <strong>negritas</strong>, <em>cursivas</em>, <strong><em>ambas</em></strong>, <del>tachado</del> y <code>código inline</code>.</p><p><a href="https://openai.com">Enlace a OpenAI</a></p><p>También enlaces sin protocolo: <a href="mailto:admin@example.com">admin@example.com</a></p><p>Línea con sub<sub>índice</sub> y super<sup>índice</sup> (según soporte).</p><hr><h2 style="page-break-after:avoid;break-after:avoid-page;">3. Listas</h2><h3 style="page-break-after:avoid;break-after:avoid-page;">3.1 Desordenada</h3><ul>
+<li>Item A</li>
+<li>Item B<ul>
+<li>Subitem B.1<ul>
+<li>Subitem B.1.1</li>
+<li>Subitem B.1.2</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Item C</li>
+</ul></div><div class="page"><h3 style="page-break-after:avoid;break-after:avoid-page;">3.2 Ordenada</h3><ol>
+<li>Primero</li>
+<li>Segundo<ol>
+<li>Sub segundo 1</li>
+<li>Sub segundo 2</li>
+</ol>
+</li>
+<li>Tercero</li>
+</ol><h3 style="page-break-after:avoid;break-after:avoid-page;">3.3 Mixta anidada</h3><ul>
+<li>Lenguajes<ol>
+<li>Python</li>
+<li>JavaScript</li>
+<li>Rust</li>
+</ol>
+</li>
+<li>Frameworks<ul>
+<li>Django</li>
+<li>React<ul>
+<li>Hooks</li>
+<li>Context</li>
+</ul>
+</li>
+<li>Axum</li>
+</ul>
+</li>
+</ul><hr><h2 style="page-break-after:avoid;break-after:avoid-page;">4. Imágenes</h2><p><img alt="Placeholder 800x400" src="https://placehold.co/800x400/1a2a3a/e5c07b?text=800x400+Test"></p><p><img alt="Placeholder 1200x600" src="https://placehold.co/1200x600/0f111a/a6e22e?text=1200x600+HiRes&amp;font=source-sans-pro"></p><hr><h2 style="page-break-after:avoid;break-after:avoid-page;">5. Tablas</h2><h3 style="page-break-after:avoid;break-after:avoid-page;">5.1 Tabla simple</h3><table>
+<thead>
+<tr>
+<th>Producto</th>
+<th>Precio</th>
+<th>Stock</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Widget Alpha</td>
+<td>$12.50</td>
+<td>142</td>
+</tr>
+<tr>
+<td>Widget Beta</td>
+<td>$24.00</td>
+<td>89</td>
+</tr>
+<tr>
+<td>Widget Gamma</td>
+<td>$8.75</td>
+<td>356</td>
+</tr>
+</tbody>
+</table></div><div class="page"><h3 style="page-break-after:avoid;break-after:avoid-page;">5.2 Tabla compleja con alineación</h3><table>
+<thead>
+<tr>
+<th>Característica</th>
+<th style="text-align: center;">TypeScript</th>
+<th style="text-align: center;">Rust</th>
+<th style="text-align: center;">Python</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tipado estático</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td>Compilado</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td>Garbage Collector</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">✅</td>
+</tr>
+<tr>
+<td>Pattern Matching</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td>Async nativo</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+</tr>
+</tbody>
+</table><h3 style="page-break-after:avoid;break-after:avoid-page;">5.3 Tabla con celdas multilínea y formateo interno</h3><table>
+<thead>
+<tr>
+<th>Módulo</th>
+<th>Versión</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rich</code></td>
+<td>13.0+</td>
+<td>Panel, Table, Syntax — <em>menús en terminal</em></td>
+</tr>
+<tr>
+<td><code>pygments</code></td>
+<td>2.17+</td>
+<td><strong>monokai</strong> style para resaltado de código</td>
+</tr>
+<tr>
+<td><code>weasyprint</code></td>
+<td>60+</td>
+<td>Fallback PDF si Puppeteer no está disponible</td>
+</tr>
+</tbody>
+</table><hr><h2 style="page-break-after:avoid;break-after:avoid-page;">6. Blockquotes</h2><blockquote>
+<p>Esto es una cita normal.</p>
+<p><strong>Nota:</strong> Las citas pueden contener <em>formato</em> y <code>código</code>.</p>
+<p>— Anónimo</p>
+<p>Nivel 1</p>
+<blockquote>
+<p>Nivel 2</p>
+<blockquote>
+<p>Nivel 3 con <strong>negrita</strong> y <code>inline</code></p>
+</blockquote>
+</blockquote>
+</blockquote></div><div class="page"><hr><h2 style="page-break-after:avoid;break-after:avoid-page;">7. Bloques de código</h2><h3 style="page-break-after:avoid;break-after:avoid-page;">7.1 Python</h3><div class="codehilite" style="page-break-inside:avoid;break-inside:avoid;overflow-x:auto;"><pre><span></span><code><span class="ch">#!/usr/bin/env python3</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
+    <span class="n">host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"localhost"</span>
+    <span class="n">port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8080</span>
+    <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">api_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_data</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Fetch JSON data from a URL with timeout."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">aiohttp</span>
+
+    <span class="k">async</span> <span class="k">with</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">()</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientTimeout</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">timeout</span><span class="p">))</span> <span class="k">as</span> <span class="n">resp</span><span class="p">:</span>
+            <span class="n">resp</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">data</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">"0.0.0.0"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">3000</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Server starting on </span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">host</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">port</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">fetch_data</span><span class="p">(</span><span class="s2">"https://api.example.com/data"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Received </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="si">}</span><span class="s2"> items"</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Request timed out"</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</code></pre></div></div><div class="page"><h3 style="page-break-after:avoid;break-after:avoid-page;">7.2 JavaScript / Node.js</h3><div class="codehilite" style="page-break-inside:avoid;break-inside:avoid;overflow-x:auto;"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">createServer</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">"node:http"</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">readFile</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">"node:fs/promises"</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">join</span><span class="p">,</span><span class="w"> </span><span class="nx">extname</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">"node:path"</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">MIME_TYPES</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="s2">".html"</span><span class="o">:</span><span class="w"> </span><span class="s2">"text/html; charset=utf-8"</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">".css"</span><span class="o">:</span><span class="w"> </span><span class="s2">"text/css"</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">".js"</span><span class="o">:</span><span class="w"> </span><span class="s2">"application/javascript"</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">".json"</span><span class="o">:</span><span class="w"> </span><span class="s2">"application/json"</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">".png"</span><span class="o">:</span><span class="w"> </span><span class="s2">"image/png"</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">".svg"</span><span class="o">:</span><span class="w"> </span><span class="s2">"image/svg+xml"</span><span class="p">,</span>
+<span class="p">};</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">server</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">createServer</span><span class="p">(</span><span class="k">async</span><span class="w"> </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span><span class="w"> </span><span class="nx">res</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">URL</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">url</span><span class="p">,</span><span class="w"> </span><span class="sb">`http://</span><span class="si">${</span><span class="nx">req</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">host</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="nx">filePath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">join</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span><span class="w"> </span><span class="nx">url</span><span class="p">.</span><span class="nx">pathname</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">"/"</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s2">"index.html"</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">url</span><span class="p">.</span><span class="nx">pathname</span><span class="p">);</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">ext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">extname</span><span class="p">(</span><span class="nx">filePath</span><span class="p">);</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">mime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">MIME_TYPES</span><span class="p">[</span><span class="nx">ext</span><span class="p">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s2">"application/octet-stream"</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">readFile</span><span class="p">(</span><span class="nx">filePath</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span><span class="p">(</span><span class="mf">200</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">"Content-Type"</span><span class="o">:</span><span class="w"> </span><span class="nx">mime</span><span class="w"> </span><span class="p">});</span>
+<span class="w">    </span><span class="nx">res</span><span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="nx">content</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">code</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">"ENOENT"</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span><span class="p">(</span><span class="mf">404</span><span class="p">);</span>
+<span class="w">      </span><span class="nx">res</span><span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="s2">"Not found"</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span><span class="p">(</span><span class="mf">500</span><span class="p">);</span>
+<span class="w">      </span><span class="nx">res</span><span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="s2">"Internal error"</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">});</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">PORT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">PORT</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="mf">3000</span><span class="p">;</span>
+<span class="nx">server</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="nx">PORT</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`🚀 Server running on http://localhost:</span><span class="si">${</span><span class="nx">PORT</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre></div></div><div class="page"><h3 style="page-break-after:avoid;break-after:avoid-page;">7.3 HTML</h3><div class="codehilite" style="page-break-inside:avoid;break-inside:avoid;overflow-x:auto;"><pre><span></span><code><span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="p">&lt;</span><span class="nt">html</span> <span class="na">lang</span><span class="o">=</span><span class="s">"es"</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">meta</span> <span class="na">charset</span><span class="o">=</span><span class="s">"UTF-8"</span> <span class="p">/&gt;</span>
+  <span class="p">&lt;</span><span class="nt">meta</span> <span class="na">name</span><span class="o">=</span><span class="s">"viewport"</span> <span class="na">content</span><span class="o">=</span><span class="s">"width=device-width, initial-scale=1.0"</span> <span class="p">/&gt;</span>
+  <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>Dashboard<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">"stylesheet"</span> <span class="na">href</span><span class="o">=</span><span class="s">"styles.css"</span> <span class="p">/&gt;</span>
+  <span class="p">&lt;</span><span class="nt">style</span><span class="p">&gt;</span>
+<span class="w">    </span><span class="p">:</span><span class="nd">root</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nv">--primary</span><span class="p">:</span><span class="w"> </span><span class="mh">#6366f1</span><span class="p">;</span>
+<span class="w">      </span><span class="nv">--bg</span><span class="p">:</span><span class="w"> </span><span class="mh">#0f111a</span><span class="p">;</span>
+<span class="w">      </span><span class="nv">--text</span><span class="p">:</span><span class="w"> </span><span class="mh">#e2e8f0</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="o">*</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">box-sizing</span><span class="p">:</span><span class="w"> </span><span class="kc">border-box</span><span class="p">;</span><span class="w"> </span><span class="k">margin</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="k">padding</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nt">body</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">background</span><span class="p">:</span><span class="w"> </span><span class="nf">var</span><span class="p">(</span><span class="nv">--bg</span><span class="p">);</span>
+<span class="w">      </span><span class="k">color</span><span class="p">:</span><span class="w"> </span><span class="nf">var</span><span class="p">(</span><span class="nv">--text</span><span class="p">);</span>
+<span class="w">      </span><span class="k">font-family</span><span class="p">:</span><span class="w"> </span><span class="s1">'Inter'</span><span class="p">,</span><span class="w"> </span><span class="kc">sans-serif</span><span class="p">;</span>
+<span class="w">      </span><span class="k">display</span><span class="p">:</span><span class="w"> </span><span class="k">grid</span><span class="p">;</span>
+<span class="w">      </span><span class="k">grid-template-columns</span><span class="p">:</span><span class="w"> </span><span class="mi">260</span><span class="kt">px</span><span class="w"> </span><span class="mi">1</span><span class="n">fr</span><span class="p">;</span>
+<span class="w">      </span><span class="k">min-height</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="kt">vh</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nt">aside</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">border-right</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="kt">px</span><span class="w"> </span><span class="kc">solid</span><span class="w"> </span><span class="mh">#1e2030</span><span class="p">;</span>
+<span class="w">      </span><span class="k">padding</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="kt">rem</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nt">aside</span><span class="w"> </span><span class="nt">nav</span><span class="w"> </span><span class="nt">a</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">display</span><span class="p">:</span><span class="w"> </span><span class="kc">block</span><span class="p">;</span>
+<span class="w">      </span><span class="k">color</span><span class="p">:</span><span class="w"> </span><span class="nf">var</span><span class="p">(</span><span class="nv">--text</span><span class="p">);</span>
+<span class="w">      </span><span class="k">padding</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="kt">rem</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">      </span><span class="k">text-decoration</span><span class="p">:</span><span class="w"> </span><span class="kc">none</span><span class="p">;</span>
+<span class="w">      </span><span class="k">border-radius</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="kt">px</span><span class="p">;</span>
+<span class="w">      </span><span class="k">transition</span><span class="p">:</span><span class="w"> </span><span class="k">background</span><span class="w"> </span><span class="mf">0.2</span><span class="kt">s</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nt">aside</span><span class="w"> </span><span class="nt">nav</span><span class="w"> </span><span class="nt">a</span><span class="p">:</span><span class="nd">hover</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">background</span><span class="p">:</span><span class="w"> </span><span class="nb">rgba</span><span class="p">(</span><span class="mi">99</span><span class="p">,</span><span class="w"> </span><span class="mi">102</span><span class="p">,</span><span class="w"> </span><span class="mi">241</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nt">main</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">padding</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="kt">rem</span><span class="w"> </span><span class="mi">3</span><span class="kt">rem</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="p">.</span><span class="nc">card</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">background</span><span class="p">:</span><span class="w"> </span><span class="mh">#161822</span><span class="p">;</span>
+<span class="w">      </span><span class="k">border</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="kt">px</span><span class="w"> </span><span class="kc">solid</span><span class="w"> </span><span class="mh">#1e2030</span><span class="p">;</span>
+<span class="w">      </span><span class="k">border-radius</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="kt">px</span><span class="p">;</span>
+<span class="w">      </span><span class="k">padding</span><span class="p">:</span><span class="w"> </span><span class="mf">1.5</span><span class="kt">rem</span><span class="p">;</span>
+<span class="w">      </span><span class="k">margin-bottom</span><span class="p">:</span><span class="w"> </span><span class="mf">1.5</span><span class="kt">rem</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nt">button</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">background</span><span class="p">:</span><span class="w"> </span><span class="nf">var</span><span class="p">(</span><span class="nv">--primary</span><span class="p">);</span>
+<span class="w">      </span><span class="k">color</span><span class="p">:</span><span class="w"> </span><span class="mh">#fff</span><span class="p">;</span>
+<span class="w">      </span><span class="k">border</span><span class="p">:</span><span class="w"> </span><span class="kc">none</span><span class="p">;</span>
+<span class="w">      </span><span class="k">padding</span><span class="p">:</span><span class="w"> </span><span class="mf">0.6</span><span class="kt">rem</span><span class="w"> </span><span class="mf">1.2</span><span class="kt">rem</span><span class="p">;</span>
+<span class="w">      </span><span class="k">border-radius</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="kt">px</span><span class="p">;</span>
+<span class="w">      </span><span class="k">font-weight</span><span class="p">:</span><span class="w"> </span><span class="mi">600</span><span class="p">;</span>
+<span class="w">      </span><span class="k">cursor</span><span class="p">:</span><span class="w"> </span><span class="kc">pointer</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">&lt;/</span><span class="nt">style</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">aside</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">h2</span><span class="p">&gt;</span>App<span class="p">&lt;/</span><span class="nt">h2</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">nav</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">"/"</span><span class="p">&gt;</span>Inicio<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">"/analytics"</span><span class="p">&gt;</span>Analytics<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">"/settings"</span><span class="p">&gt;</span>Settings<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">nav</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">aside</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">main</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"card"</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Dashboard<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Welcome back, <span class="p">&lt;</span><span class="nt">strong</span><span class="p">&gt;</span>Admin<span class="p">&lt;/</span><span class="nt">strong</span><span class="p">&gt;</span>.<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="nt">button</span> <span class="na">onclick</span><span class="o">=</span><span class="s">"refresh()"</span><span class="p">&gt;</span>Refresh Data<span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">main</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</code></pre></div></div><div class="page"><h3 style="page-break-after:avoid;break-after:avoid-page;">7.4 Bash / Shell</h3><div class="codehilite" style="page-break-inside:avoid;break-inside:avoid;overflow-x:auto;"><pre><span></span><code><span class="ch">#!/usr/bin/env bash</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+
+<span class="nv">PROJECT</span><span class="o">=</span><span class="s2">"md2pdf"</span>
+<span class="nv">VERSION</span><span class="o">=</span><span class="s2">"2.0.0"</span>
+<span class="nv">BUILD_DIR</span><span class="o">=</span><span class="s2">"./dist"</span>
+
+info<span class="o">()</span><span class="w">  </span><span class="o">{</span><span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s2">"\033[1;34m[INFO]\033[0m %s\n"</span><span class="w"> </span><span class="s2">"</span><span class="nv">$*</span><span class="s2">"</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+ok<span class="o">()</span><span class="w">    </span><span class="o">{</span><span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s2">"\033[1;32m[ OK ]\033[0m %s\n"</span><span class="w"> </span><span class="s2">"</span><span class="nv">$*</span><span class="s2">"</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+err<span class="o">()</span><span class="w">   </span><span class="o">{</span><span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s2">"\033[1;31m[ERROR]\033[0m %s\n"</span><span class="w"> </span><span class="s2">"</span><span class="nv">$*</span><span class="s2">"</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+
+clean<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">  </span>info<span class="w"> </span><span class="s2">"Limpiando directorio de build …"</span>
+<span class="w">  </span>rm<span class="w"> </span>-rf<span class="w"> </span><span class="s2">"</span><span class="nv">$BUILD_DIR</span><span class="s2">"</span>
+<span class="w">  </span>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">"</span><span class="nv">$BUILD_DIR</span><span class="s2">"</span>
+<span class="o">}</span>
+
+build<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">  </span>info<span class="w"> </span><span class="s2">"Compilando <span class="math-inline">${PROJECT} v$</span>{VERSION} …"</span>
+<span class="w">  </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="w"> </span>--quiet
+<span class="w">  </span>npm<span class="w"> </span>ci<span class="w"> </span>--silent<span class="w"> </span><span class="o">||</span><span class="w"> </span>npm<span class="w"> </span>install<span class="w"> </span>--silent
+<span class="w">  </span>ok<span class="w"> </span><span class="s2">"Dependencias listas"</span>
+<span class="o">}</span>
+
+test<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">  </span>info<span class="w"> </span><span class="s2">"Ejecutando tests …"</span>
+<span class="w">  </span>python3<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-20
+<span class="w">  </span>ok<span class="w"> </span><span class="s2">"Tests pasaron"</span>
+<span class="o">}</span>
+
+package<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">  </span>info<span class="w"> </span><span class="s2">"Empaquetando …"</span>
+<span class="w">  </span>tar<span class="w"> </span>-czf<span class="w"> </span><span class="s2">"<span class="math-inline">${BUILD_DIR}/$</span>{PROJECT}-</span><span class="si">${</span><span class="nv">VERSION</span><span class="si">}</span><span class="s2">.tar.gz"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--exclude<span class="o">=</span>node_modules<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--exclude<span class="o">=</span>__pycache__<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--exclude<span class="o">=</span>.pytest_cache<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>.
+<span class="w">  </span>ok<span class="w"> </span><span class="s2">"Package → <span class="math-inline">${BUILD_DIR}/$</span>{PROJECT}-</span><span class="si">${</span><span class="nv">VERSION</span><span class="si">}</span><span class="s2">.tar.gz"</span>
+<span class="o">}</span>
+
+<span class="k">case</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">1</span><span class="k">:-</span><span class="nv">help</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="k">in</span>
+<span class="w">  </span>clean<span class="o">)</span><span class="w">   </span>clean<span class="w"> </span><span class="p">;;</span>
+<span class="w">  </span>build<span class="o">)</span><span class="w">   </span>build<span class="w"> </span><span class="p">;;</span>
+<span class="w">  </span><span class="nb">test</span><span class="o">)</span><span class="w">    </span><span class="nb">test</span><span class="w"> </span><span class="p">;;</span>
+<span class="w">  </span>package<span class="o">)</span><span class="w"> </span>package<span class="w"> </span><span class="p">;;</span>
+<span class="w">  </span>all<span class="o">)</span><span class="w">     </span>clean<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>package<span class="w"> </span><span class="p">;;</span>
+<span class="w">  </span>help<span class="p">|</span>*<span class="o">)</span><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Uso: </span><span class="nv">$0</span><span class="s2"> {clean|build|test|package|all}"</span><span class="w"> </span><span class="p">;;</span>
+<span class="k">esac</span>
+</code></pre></div></div><div class="page"><h3 style="page-break-after:avoid;break-after:avoid-page;">7.5 Rust</h3><div class="codehilite" style="page-break-inside:avoid;break-inside:avoid;overflow-x:auto;"><pre><span></span><code><span class="k">use</span><span class="w"> </span><span class="n">std</span><span class="p">::</span><span class="n">collections</span><span class="p">::</span><span class="n">HashMap</span><span class="p">;</span>
+<span class="k">use</span><span class="w"> </span><span class="n">std</span><span class="p">::</span><span class="n">fs</span><span class="p">;</span>
+<span class="k">use</span><span class="w"> </span><span class="n">std</span><span class="p">::</span><span class="n">io</span><span class="p">::{</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">BufRead</span><span class="p">};</span>
+<span class="k">use</span><span class="w"> </span><span class="n">std</span><span class="p">::</span><span class="n">path</span><span class="p">::</span><span class="n">Path</span><span class="p">;</span>
+
+<span class="cp">#[derive(Debug, Clone)]</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Task</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">id</span><span class="p">:</span><span class="w"> </span><span class="kt">u64</span><span class="p">,</span>
+<span class="w">    </span><span class="n">title</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span>
+<span class="w">    </span><span class="n">done</span><span class="p">:</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span>
+<span class="w">    </span><span class="n">tags</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="k">impl</span><span class="w"> </span><span class="n">Task</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">fn</span><span class="w"> </span><span class="nf">new</span><span class="p">(</span><span class="n">id</span><span class="p">:</span><span class="w"> </span><span class="kt">u64</span><span class="p">,</span><span class="w"> </span><span class="n">title</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">Self</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="bp">Self</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">id</span><span class="p">,</span>
+<span class="w">            </span><span class="n">title</span><span class="p">:</span><span class="w"> </span><span class="nc">title</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+<span class="w">            </span><span class="n">done</span><span class="p">:</span><span class="w"> </span><span class="nc">false</span><span class="p">,</span>
+<span class="w">            </span><span class="n">tags</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="p">::</span><span class="n">new</span><span class="p">(),</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">fn</span><span class="w"> </span><span class="nf">toggle</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="bp">self</span><span class="p">.</span><span class="n">done</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">!</span><span class="bp">self</span><span class="p">.</span><span class="n">done</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">fn</span><span class="w"> </span><span class="nf">add_tag</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">tag</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="o">!</span><span class="bp">self</span><span class="p">.</span><span class="n">tags</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tag</span><span class="p">.</span><span class="n">to_string</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="bp">self</span><span class="p">.</span><span class="n">tags</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">tag</span><span class="p">.</span><span class="n">to_string</span><span class="p">());</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">fn</span><span class="w"> </span><span class="nf">load_tasks</span><span class="o">&lt;</span><span class="n">P</span><span class="p">:</span><span class="w"> </span><span class="nb">AsRef</span><span class="o">&lt;</span><span class="n">Path</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nc">P</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">io</span><span class="p">::</span><span class="nb">Result</span><span class="o">&lt;</span><span class="nb">Vec</span><span class="o">&lt;</span><span class="n">Task</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fs</span><span class="p">::</span><span class="n">File</span><span class="p">::</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">?</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">reader</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">io</span><span class="p">::</span><span class="n">BufReader</span><span class="p">::</span><span class="n">new</span><span class="p">(</span><span class="n">file</span><span class="p">);</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="k">mut</span><span class="w"> </span><span class="n">tasks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Vec</span><span class="p">::</span><span class="n">new</span><span class="p">();</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">line</span><span class="p">)</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">reader</span><span class="p">.</span><span class="n">lines</span><span class="p">().</span><span class="n">enumerate</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">line</span><span class="o">?</span><span class="p">;</span>
+<span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">trimmed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">line</span><span class="p">.</span><span class="n">trim</span><span class="p">();</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="o">!</span><span class="n">trimmed</span><span class="p">.</span><span class="n">is_empty</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">tasks</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">Task</span><span class="p">::</span><span class="n">new</span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="kt">u64</span><span class="p">,</span><span class="w"> </span><span class="n">trimmed</span><span class="p">));</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nb">Ok</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="k">fn</span><span class="w"> </span><span class="nf">group_by_tag</span><span class="p">(</span><span class="n">tasks</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="p">[</span><span class="n">Task</span><span class="p">])</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;&amp;</span><span class="n">Task</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="k">mut</span><span class="w"> </span><span class="n">map</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;&amp;</span><span class="n">Task</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HashMap</span><span class="p">::</span><span class="n">new</span><span class="p">();</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="n">task</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">tasks</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="n">task</span><span class="p">.</span><span class="n">tags</span><span class="p">.</span><span class="n">is_empty</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">map</span><span class="p">.</span><span class="n">entry</span><span class="p">(</span><span class="s">"untagged"</span><span class="p">.</span><span class="n">into</span><span class="p">()).</span><span class="n">or_default</span><span class="p">().</span><span class="n">push</span><span class="p">(</span><span class="n">task</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">&amp;</span><span class="n">task</span><span class="p">.</span><span class="n">tags</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">map</span><span class="p">.</span><span class="n">entry</span><span class="p">(</span><span class="n">tag</span><span class="p">.</span><span class="n">clone</span><span class="p">()).</span><span class="n">or_default</span><span class="p">().</span><span class="n">push</span><span class="p">(</span><span class="n">task</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">map</span>
+<span class="p">}</span>
+
+<span class="k">fn</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">io</span><span class="p">::</span><span class="nb">Result</span><span class="o">&lt;</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">tasks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">load_tasks</span><span class="p">(</span><span class="s">"tasks.txt"</span><span class="p">)</span><span class="o">?</span><span class="p">;</span>
+<span class="w">    </span><span class="fm">println!</span><span class="p">(</span><span class="s">"Loaded {} tasks"</span><span class="p">,</span><span class="w"> </span><span class="n">tasks</span><span class="p">.</span><span class="n">len</span><span class="p">());</span>
+
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">grouped</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">group_by_tag</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tasks</span><span class="p">);</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">tag</span><span class="p">,</span><span class="w"> </span><span class="n">items</span><span class="p">)</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">&amp;</span><span class="n">grouped</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="fm">println!</span><span class="p">(</span><span class="s">"  [{tag}] {} items"</span><span class="p">,</span><span class="w"> </span><span class="n">items</span><span class="p">.</span><span class="n">len</span><span class="p">());</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nb">Ok</span><span class="p">(())</span>
+<span class="p">}</span>
+</code></pre></div></div><div class="page"><h3 style="page-break-after:avoid;break-after:avoid-page;">7.6 SQL</h3><div class="codehilite" style="page-break-inside:avoid;break-inside:avoid;overflow-x:auto;"><pre><span></span><code><span class="c1">-- Sample: e-commerce schema</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w">         </span><span class="nb">SERIAL</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">email</span><span class="w">      </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">UNIQUE</span><span class="p">,</span>
+<span class="w">    </span><span class="n">name</span><span class="w">       </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">120</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="n">TIMESTAMPTZ</span><span class="w">  </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">NOW</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">updated_at</span><span class="w"> </span><span class="n">TIMESTAMPTZ</span><span class="w">  </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">NOW</span><span class="p">()</span>
+<span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_users_email</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="p">(</span><span class="n">email</span><span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w">         </span><span class="nb">SERIAL</span><span class="w">    </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">user_id</span><span class="w">    </span><span class="nb">INTEGER</span><span class="w">   </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">users</span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">,</span>
+<span class="w">    </span><span class="n">total</span><span class="w">      </span><span class="nb">NUMERIC</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">total</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">),</span>
+<span class="w">    </span><span class="n">status</span><span class="w">     </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">'pending'</span>
+<span class="w">                    </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">'pending'</span><span class="p">,</span><span class="s1">'paid'</span><span class="p">,</span><span class="s1">'shipped'</span><span class="p">,</span><span class="s1">'cancelled'</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">NOW</span><span class="p">()</span>
+<span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">order_items</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w">        </span><span class="nb">SERIAL</span><span class="w">  </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">order_id</span><span class="w">  </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">orders</span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">,</span>
+<span class="w">    </span><span class="n">sku</span><span class="w">       </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">qty</span><span class="w">       </span><span class="nb">INTEGER</span><span class="w">     </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">qty</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">),</span>
+<span class="w">    </span><span class="n">price</span><span class="w">     </span><span class="nb">NUMERIC</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="p">);</span>
+
+<span class="c1">-- Complex query: top users by revenue</span>
+<span class="k">SELECT</span>
+<span class="w">    </span><span class="n">u</span><span class="p">.</span><span class="n">id</span><span class="p">,</span>
+<span class="w">    </span><span class="n">u</span><span class="p">.</span><span class="n">name</span><span class="p">,</span>
+<span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="n">o</span><span class="p">.</span><span class="n">id</span><span class="p">)</span><span class="w">               </span><span class="k">AS</span><span class="w"> </span><span class="n">order_count</span><span class="p">,</span>
+<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="n">o</span><span class="p">.</span><span class="n">total</span><span class="p">)::</span><span class="nb">NUMERIC</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">revenue</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="n">u</span>
+<span class="k">JOIN</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="n">o</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">u</span><span class="p">.</span><span class="n">id</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'paid'</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">created_at</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">NOW</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">INTERVAL</span><span class="w"> </span><span class="s1">'30 days'</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">u</span><span class="p">.</span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">u</span><span class="p">.</span><span class="n">name</span>
+<span class="k">HAVING</span><span class="w"> </span><span class="k">SUM</span><span class="p">(</span><span class="n">o</span><span class="p">.</span><span class="n">total</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">100</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">revenue</span><span class="w"> </span><span class="k">DESC</span>
+<span class="k">LIMIT</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+</code></pre></div><hr><h2 style="page-break-after:avoid;break-after:avoid-page;">8. Líneas horizontales y separadores</h2><p>Texto arriba.</p><hr><p>Texto medio.</p><hr><p>Texto abajo.</p></div><div class="page"><hr><hr><h2 style="page-break-after:avoid;break-after:avoid-page;">9. Fórmulas LaTeX</h2><h3 style="page-break-after:avoid;break-after:avoid-page;">9.1 Display math</h3><div class="math-display">$$
+
+\int_{a}^{b} f(x) \, dx = \lim_{n \to \infty} \sum_{i=1}^{n} f(x_i^*) \,\Delta x
+
+$$</div><div class="math-display">$$
+
+\frac{d}{dx} \left( \int_{a}^{x} f(t) \, dt \right) = f(x)
+
+$$</div><div class="math-display">$$
+
+\begin{bmatrix}
+   a_{11} &amp; a_{12} &amp; \cdots &amp; a_{1n} \\
+   a_{21} &amp; a_{22} &amp; \cdots &amp; a_{2n} \\
+   \vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+   a_{m1} &amp; a_{m2} &amp; \cdots &amp; a_{mn}
+\end{bmatrix}
+
+$$</div><h3 style="page-break-after:avoid;break-after:avoid-page;">9.2 Inline math</h3><p>La ecuación de Euler <span class="math-inline">$e^{i\pi} + 1 = 0$</span> es considerada la más bella.</p><p>El teorema de Pitágoras: <span class="math-inline">$a^2 + b^2 = c^2$</span>.</p><hr><h2 style="page-break-after:avoid;break-after:avoid-page;">10. Párrafo largo de resistencia</h2><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p><p><strong>Sed ut perspiciatis</strong> unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p><blockquote>
+<p><em>"La única forma de hacer un gran trabajo es amar lo que haces."</em> — Steve Jobs</p>
+</blockquote><hr></div><div class="page"><h2 style="page-break-after:avoid;break-after:avoid-page;">11. Checklist / Tareas</h2><ul class="task-list">
+<li class="task-list-item"><input type="checkbox" disabled="" checked=""> Título y subtítulo sin asteriscos literales</li>
+<li class="task-list-item"><input type="checkbox" disabled="" checked=""> Materia e integrantes opcionales en portada</li>
+<li class="task-list-item"><input type="checkbox" disabled="" checked=""> Imágenes en alta resolución</li>
+<li class="task-list-item"><input type="checkbox" disabled="" checked=""> Bloques de código con Pygments (monokai)</li>
+<li class="task-list-item"><input type="checkbox" disabled="" checked=""> Previsualización temporal antes de guardar</li>
+<li class="task-list-item"><input type="checkbox" disabled=""> Soporte para diagramas Mermaid (futuro)</li>
+<li class="task-list-item"><input type="checkbox" disabled=""> Exportación directa a DOCX</li>
+</ul><hr><h2 style="page-break-after:avoid;break-after:avoid-page;">12. Tabla larga para probar page-break</h2><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Nombre</th>
+<th>Rol</th>
+<th>Estado</th>
+<th>Observaciones</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Alice Johnson</td>
+<td>Frontend</td>
+<td>Activo</td>
+<td>Licencia hasta 2027</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Bob Smith</td>
+<td>Backend</td>
+<td>Activo</td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Carol Williams</td>
+<td>DevOps</td>
+<td>Inactivo</td>
+<td>Recontratable</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Dave Brown</td>
+<td>QA</td>
+<td>Activo</td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Eve Davis</td>
+<td>PM</td>
+<td>Activo</td>
+<td>Certificada PMP</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Frank Miller</td>
+<td>Mobile</td>
+<td>Activo</td>
+<td></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Grace Wilson</td>
+<td>Data</td>
+<td>Inactivo</td>
+<td></td>
+</tr>
+<tr>
+<td>8</td>
+<td>Henry Moore</td>
+<td>Security</td>
+<td>Activo</td>
+<td></td>
+</tr>
+<tr>
+<td>9</td>
+<td>Irene Taylor</td>
+<td>Design</td>
+<td>Activo</td>
+<td></td>
+</tr>
+<tr>
+<td>10</td>
+<td>Jack Anderson</td>
+<td>Backend</td>
+<td>Activo</td>
+<td>En período de prueba</td>
+</tr>
+</tbody>
+</table><hr><p><strong>Fin del archivo de prueba.</strong></p></div></body></html>

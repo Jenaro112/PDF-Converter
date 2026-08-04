@@ -1,0 +1,48 @@
+# Entorno Virtual Python
+.venv/
+venv/
+env/
+ENV/
+*.venv
+
+# Python Cache & Compilados
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node.js / Web
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Variables de entorno y secretos
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Archivos del SO y Editores
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos temporales y de salida del conversor PDF
+output/
+output_test_*
+temp_diagnostics.html
+temp_*.html
+*.log
+snapshots/

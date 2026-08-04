@@ -1,0 +1,37 @@
+@page { size: A4; margin: 0; }
+
+html, body {
+  width: 210mm;
+  margin: 0;
+  padding: 0;
+  background-color: var(--page-bg) !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  height: 297mm;
+  box-sizing: border-box;
+  background-color: var(--page-bg) !important;
+  padding: 20mm;
+  margin: 0;
+  text-align: justify;
+  page-break-after: always !important;
+  break-after: page !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.page-break, .pagebreak {
+  page-break-after: always !important;
+  break-after: page !important;
+  display: block !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}

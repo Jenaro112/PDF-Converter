@@ -1,0 +1,153 @@
+/* Cover Page Styles */
+.cover-page {
+  position: relative;
+  page-break-after: always !important;
+  break-after: page !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.cover-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  width: 100%;
+}
+
+.cover-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cover-logo {
+  max-height: 70px;
+  max-width: 200px;
+  object-fit: contain;
+}
+
+.logo-pos-left {
+  align-self: flex-start;
+}
+
+.logo-pos-center {
+  align-self: center;
+}
+
+.logo-pos-right {
+  align-self: flex-end;
+}
+
+.cover-kicker {
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent-color);
+  opacity: 0.85;
+}
+
+.cover-body {
+  margin: auto 0;
+}
+
+.cover-title {
+  font-family: var(--font-family-headings);
+  font-size: 28pt;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--heading-color);
+  border: none !important;
+  padding: 0 !important;
+  margin-bottom: 12px;
+}
+
+.cover-subtitle {
+  font-size: 14pt;
+  font-weight: 400;
+  color: var(--muted-color);
+  line-height: 1.5;
+}
+
+.cover-footer-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 20px;
+  border-top: 2px solid var(--accent-color);
+}
+
+.cover-meta-item {
+  display: flex;
+  font-size: 10.5pt;
+  line-height: 1.5;
+}
+
+.meta-label {
+  font-weight: 700;
+  width: 120px;
+  color: var(--heading-color);
+  flex-shrink: 0;
+}
+
+.meta-value {
+  color: var(--text-color);
+}
+
+/* ─── Cover Style: Classic ─── */
+.cover-style-classic {
+  text-align: center;
+  border: 4px double var(--accent-color);
+}
+.cover-style-classic .cover-header {
+  align-items: center;
+}
+.cover-style-classic .cover-footer-meta {
+  text-align: left;
+}
+
+/* ─── Cover Style: Sidebar ─── */
+.cover-style-sidebar {
+  padding-left: 35mm !important;
+}
+.cover-sidebar-stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 18mm;
+  background: var(--accent-color);
+  opacity: 0.9;
+}
+
+/* ─── Cover Style: Minimal ─── */
+.cover-style-minimal {
+  text-align: left;
+}
+.cover-style-minimal .cover-title {
+  font-size: 34pt;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+.cover-style-minimal .cover-footer-meta {
+  border-top-width: 1px;
+}
+
+/* ─── Cover Style: Technical ─── */
+.cover-style-technical {
+  background: var(--page-bg);
+}
+.cover-style-technical .cover-header {
+  border-bottom: 3px solid var(--heading-color);
+  padding-bottom: 16px;
+}
+.cover-style-technical .cover-footer-meta {
+  background: rgba(0, 0, 0, 0.03);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--table-border);
+}

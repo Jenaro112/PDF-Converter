@@ -1,0 +1,193 @@
+/* Minimalist A4 Preview Workspace Styles */
+.preview-scroll-container {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--preview-body-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px;
+  width: 100%;
+  max-width: 220mm;
+}
+
+/* Individual A4 Page Card */
+.preview-page {
+  width: 210mm;
+  min-height: 297mm;
+  height: max-content;
+  box-sizing: border-box;
+  background: var(--page-bg);
+  padding: 20mm;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  font-family: var(--font-family-content);
+  font-size: 11pt;
+  line-height: 1.65;
+  color: var(--text-color);
+  text-align: justify;
+  flex-shrink: 0;
+  position: relative;
+  transition: box-shadow 0.25s ease;
+}
+
+.preview-page:hover {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* Page Number Badge */
+.preview-page[data-page-number]::after {
+  content: "Página " attr(data-page-number);
+  position: absolute;
+  bottom: 8mm;
+  right: 20mm;
+  font-size: 8.5pt;
+  font-family: var(--font-family-content);
+  color: var(--muted-color);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Headings */
+.preview-page h1, .preview-page h2, .preview-page h3, .preview-page h4, .preview-page h5, .preview-page h6 {
+  font-family: var(--font-family-headings);
+  color: var(--heading-color);
+  margin-top: 0;
+  letter-spacing: -0.2px;
+}
+.preview-page h1:first-child, .preview-page h2:first-child { margin-top: 0; }
+.preview-page h1 { font-size: 20pt; font-weight: 700; margin-top: 10mm; margin-bottom: 4mm; border-bottom: var(--h1-border-width) solid var(--h1-border-color); padding-bottom: 2mm; }
+.preview-page h2 { font-size: 14pt; font-weight: 600; margin-top: 7mm; margin-bottom: 3mm; }
+.preview-page h3 { font-size: 12pt; font-weight: 600; margin-top: 5mm; margin-bottom: 2mm; font-style: italic; }
+.preview-page p { margin-bottom: 3.5mm; }
+
+/* Code blocks */
+.preview-page .codehilite, .preview-page .highlight, .preview-page pre {
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 14px 0;
+  overflow: visible !important;
+  border: 1px solid var(--code-border);
+  font-size: 9pt;
+  background: var(--code-bg);
+}
+.preview-page pre, .preview-page pre code {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: inherit;
+  color: var(--code-color);
+}
+.preview-page :not(pre) > code {
+  background: var(--inline-code-bg);
+  color: var(--inline-code-color);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 8.5pt;
+  border: 1px solid var(--inline-code-border);
+}
+
+/* KaTeX */
+.preview-page .katex, .preview-page .katex * {
+  font-family: KaTeX_Main, 'Times New Roman', serif !important;
+}
+
+/* Blockquotes */
+.preview-page blockquote {
+  border-left: 3px solid var(--accent-color);
+  padding: 8px 16px;
+  margin: 14px 0;
+  background: rgba(0, 0, 0, 0.015);
+  border-radius: 0 4px 4px 0;
+  font-style: italic;
+  color: var(--muted-color);
+}
+
+/* Tables */
+.preview-page table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 9.5pt;
+}
+.preview-page th, .preview-page td {
+  padding: 8px 12px;
+  border: 1px solid var(--table-border);
+  text-align: left;
+}
+.preview-page th {
+  background-color: var(--table-header-bg) !important;
+  color: var(--table-header-fg) !important;
+  font-family: var(--font-family-headings);
+  font-weight: 600;
+}
+.preview-page tr:nth-child(even) {
+  background-color: var(--table-row-even-bg);
+}
+
+/* Lists */
+.preview-page ul, .preview-page ol {
+  padding-left: 22px;
+  margin-bottom: 12px;
+}
+.preview-page li { margin-bottom: 4px; }
+
+/* Images */
+.preview-page img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 6mm auto;
+}
+
+/* HR */
+.preview-page hr { border: none; border-top: 1px solid var(--accent-color); opacity: 0.3; margin: 6mm 0; }
+
+/* Math */
+.preview-page .math-display, .preview-page .katex-display {
+  text-align: center;
+  margin: 5mm 0;
+  overflow-x: auto;
+}
+.preview-page .math-inline { white-space: nowrap; }
+.preview-page strong { color: var(--heading-color); }
+
+/* Mermaid */
+.preview-page .mermaid-diagram {
+  max-width: 100%;
+  display: block;
+  margin: 6mm auto;
+  text-align: center;
+  overflow-x: auto;
+}
+.preview-page .mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Page breaks */
+.preview-page .page-break, .preview-page .pagebreak {
+  display: none;
+}
+
+/* Mark/Highlights */
+.preview-page mark {
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: inherit;
+}
