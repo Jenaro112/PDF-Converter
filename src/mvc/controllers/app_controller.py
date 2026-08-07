@@ -2,6 +2,8 @@ import tempfile
 import os
 import traceback
 import re
+import sys
+import platform
 import shutil
 from typing import Optional
 from PyQt6.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, QTimer
@@ -116,16 +118,7 @@ class AppController(QObject):
         
     def _on_input_changed(self, *_):
         self.view.show_status("Escribiendo...")
-        self._update_outline()
         self.debounce_timer.start(300)
-
-    def _update_outline(self):
-        headings = []
-        for index, line in enumerate(self.view.editor.toPlainText().splitlines()):
-            match = re.match(r'^(#{1,3})\s+(.+?)\s*#*\s*$', line)
-            if match:
-                headings.append((len(match.group(1)), match.group(2), index))
-        self.view.update_outline(headings)
 
     def _autosave(self):
         text = self.view.editor.toPlainText()
@@ -285,7 +278,7 @@ class AppController(QObject):
                     self.view, "Error de conversión DOCX",
                     f"No se pudo convertir el archivo: {os.path.basename(file_path)}\n\n"
                     "Para abrir archivos .docx se recomienda tener Pandoc instalado:\n"
-                    "brew install pandoc"
+                    + ("choco install pandoc  o  winget install --id JohnMacFarlane.Pandoc" if platform.system() == 'Windows' else "brew install pandoc")
                 )
                 self.view.show_status("Error al abrir archivo", 3000)
                 return
@@ -368,7 +361,7 @@ class AppController(QObject):
             target_path += '.docx'
         pandoc = shutil.which('pandoc')
         if not pandoc:
-            QMessageBox.warning(self.view, 'Pandoc no disponible', 'Para exportar Word instalá Pandoc:\n\nbrew install pandoc')
+            QMessageBox.warning(self.view, 'Pandoc no disponible', 'Para exportar Word instal\u00e1 Pandoc:\n\n' + ('choco install pandoc  o  winget install --id JohnMacFarlane.Pandoc' if platform.system() == 'Windows' else 'brew install pandoc'))
             return
         try:
             with tempfile.NamedTemporaryFile(delete=False, suffix='.md', mode='w', encoding='utf-8') as source:

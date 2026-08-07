@@ -1,6 +1,9 @@
 import os
+import platform
 import subprocess
 from pathlib import Path
+
+_IS_WINDOWS = platform.system() == 'Windows'
 
 class PdfExporterFacade:
     """
@@ -48,7 +51,8 @@ class PdfExporterFacade:
         try:
             result = subprocess.run(
                 ["node", str(pdf_script), os.path.abspath(html_path), os.path.abspath(pdf_path), footer_text],
-                capture_output=True, text=True
+                capture_output=True, text=True,
+                shell=_IS_WINDOWS  # En Windows, node puede necesitar shell=True
             )
             if result.returncode != 0:
                 print(f"Puppeteer error:\\n{result.stderr}")
@@ -70,7 +74,8 @@ class PdfExporterFacade:
             logger.setLevel(logging.WARNING) # Mostrar advertencias sobre fuentes fallidas
             
             # Usar el directorio de trabajo actual como base_url para que encuentre las imágenes relativas si alguna no se convirtió a URI absoluta.
-            base_url = f"file://{os.getcwd()}/"
+            # Path.as_uri() genera URIs correctas en Windows (file:///C:/...) y Unix
+            base_url = Path(os.getcwd()).as_uri() + '/'
             HTML(filename=html_path, base_url=base_url).write_pdf(pdf_path)
             return True
         except ImportError:

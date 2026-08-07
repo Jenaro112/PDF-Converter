@@ -1,9 +1,12 @@
 import os
 import re
 import subprocess
+import platform
 import shutil
 from pathlib import Path
 from typing import Optional
+
+_IS_WINDOWS = platform.system() == 'Windows'
 
 
 class DocxConverter:
@@ -21,7 +24,8 @@ class DocxConverter:
         try:
             result = subprocess.run(
                 ["pandoc", "--version"],
-                capture_output=True, text=True
+                capture_output=True, text=True,
+                shell=_IS_WINDOWS
             )
             return result.returncode == 0
         except FileNotFoundError:
@@ -71,7 +75,8 @@ class DocxConverter:
                         "--wrap=none"
                     ],
                     capture_output=True, text=True,
-                    cwd=parent_dir
+                    cwd=parent_dir,
+                    shell=_IS_WINDOWS  # En Windows, pandoc puede necesitar shell=True
                 )
                 if result.returncode == 0 and os.path.exists(temp_md):
                     pandoc_success = True

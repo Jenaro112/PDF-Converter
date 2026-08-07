@@ -27,7 +27,7 @@ class EditorPanel(QPlainTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        self.setFont(QFont("JetBrains Mono", 12))
+        self.setFont(QFont("JetBrains Mono", 11))
         self.setTabStopDistance(self.fontMetrics().horizontalAdvance(" ") * 4)
 
         # Placeholder con estilo acorde
@@ -41,8 +41,8 @@ class EditorPanel(QPlainTextEdit):
                 padding: 8px 12px;
                 selection-background-color: #282e4a;
                 selection-color: #ffffff;
-                font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
-                font-size: 11pt;
+                font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+                font-size: 10.5pt;
             }
         """)
 

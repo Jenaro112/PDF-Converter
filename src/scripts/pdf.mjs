@@ -1,4 +1,5 @@
 import puppeteer from "puppeteer";
+import { pathToFileURL } from "url";
 
 const [htmlPath, pdfPath, footerText = ""] = process.argv.slice(2);
 
@@ -20,7 +21,8 @@ await page.setViewport({
 // Forzar modo print para que se respeten @page y reglas de impresión
 await page.emulateMediaType("print");
 
-await page.goto("file://" + htmlPath, { waitUntil: ["networkidle0", "domcontentloaded"] });
+// Usar pathToFileURL para generar URIs válidas en Windows (file:///C:/...) y macOS/Linux
+await page.goto(pathToFileURL(htmlPath).href, { waitUntil: ["networkidle0", "domcontentloaded"] });
 await page.waitForFunction(() => document.fonts?.ready);
 
 // Esperar a que todas las imágenes carguen completamente antes de generar el PDF
