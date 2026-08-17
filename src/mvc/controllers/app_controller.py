@@ -6,8 +6,8 @@ import sys
 import platform
 import shutil
 from typing import Optional
-from PyQt6.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, QTimer
-from PyQt6.QtWidgets import QFileDialog, QMessageBox, QDialog, QInputDialog
+from PySide6.QtCore import QObject, QThread, Signal, Slot, QTimer, QFileSystemWatcher
+from PySide6.QtWidgets import QFileDialog, QMessageBox, QDialog
 
 from mvc.models.document import DocumentModel
 from mvc.models.theme_manager import ThemeManager
@@ -18,13 +18,13 @@ from mvc.views.cover_dialog import CoverDialog
 from facade.pdf_exporter import PdfExporterFacade
 
 class RenderWorker(QObject):
-    finished = pyqtSignal(str)
+    finished = Signal(str)
 
     def __init__(self, model: DocumentModel):
         super().__init__()
         self.model = model
 
-    @pyqtSlot(dict)
+    @Slot(dict)
     def render(self, data: dict):
         html = self.model.render_html(
             md_text=data.get('text', ''),
@@ -38,12 +38,13 @@ class RenderWorker(QObject):
             show_logo=data.get('show_logo', False),
             logo_position=data.get('logo_position', 'top-left'),
             cover_style=data.get('cover_style', 'folio'),
+            page_config=data.get('page_config', {}),
             is_preview=True
         )
         self.finished.emit(html)
 
 class AppController(QObject):
-    _render_request = pyqtSignal(dict)
+    _render_request = Signal(dict)
     
     def __init__(self):
         super().__init__()
@@ -71,6 +72,18 @@ class AppController(QObject):
             'logo_position': 'top-left',
             'cover_style': 'folio',
         }
+        
+        # Estado de página modal
+        self._page_data = {
+            'numbering_style': '1',
+            'header_left': '',
+            'header_center': '',
+            'header_right': '',
+            'footer_left': '',
+            'footer_center': '',
+            'footer_right': '',
+            'header_logo': ''
+        }
 
         theme_choices = ThemeManager.get_theme_choices()
         self.view = MainWindow(theme_choices)
@@ -81,6 +94,10 @@ class AppController(QObject):
         
         self._init_threading()
         self._connect_signals()
+        
+        self.file_watcher = QFileSystemWatcher(self)
+        self.file_watcher.fileChanged.connect(self._on_external_file_changed)
+        
         self.autosave_timer = QTimer(self)
         self.autosave_timer.setInterval(45_000)
         self.autosave_timer.timeout.connect(self._autosave)
@@ -99,11 +116,12 @@ class AppController(QObject):
         self.view.options_changed.connect(self._on_input_changed)
         self.view.export_requested.connect(self._on_export_requested)
         self.view.file_opened.connect(self._on_file_opened)
+        self.view.file_selected_from_explorer.connect(self._on_file_opened)
         self.view.cover_requested.connect(self._on_cover_requested)
+        self.view.page_config_requested.connect(self._on_page_config_requested)
         self.view.save_requested.connect(self._save_document)
         self.view.editor.image_pasted.connect(self._on_image_pasted)
         self.view.combine_requested.connect(self._combine_files)
-        self.view.highlights_requested.connect(self._show_highlight_index)
         self.view.closed.connect(self.shutdown)
 
     def shutdown(self):
@@ -209,15 +227,58 @@ class AppController(QObject):
             print(f"[Error Modal Portada] {e}")
             QMessageBox.critical(self.view, "Error", f"Ocurrió un error al configurar la portada:\n{e}")
 
+    def _on_page_config_requested(self):
+        try:
+            from mvc.views.page_config_dialog import PageConfigDialog
+            dialog = PageConfigDialog(self.view, initial_data=self._page_data)
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                self._page_data = dialog.get_page_config()
+                print(f"[Página Modal] Guardado: {self._page_data}")
+                self.view.show_status("Configuración de página actualizada", 2000)
+                self._trigger_render()
+        except Exception as e:
+            traceback.print_exc()
+            print(f"[Error Modal Página] {e}")
+            QMessageBox.critical(self.view, "Error", f"Ocurrió un error al configurar la página:\n{e}")
+
+    def _on_external_file_changed(self, path):
+        if path == self.current_file_path:
+            try:
+                # Reload file silently
+                with open(path, 'r', encoding='utf-8') as f:
+                    new_text = f.read()
+                
+                # Check if text is actually different to avoid unnecessary UI updates
+                if self.view.editor.toPlainText() != new_text:
+                    self.view.editor.blockSignals(True) # Prevent infinite loops with debounce
+                    
+                    # Guardar posición del cursor
+                    cursor = self.view.editor.textCursor()
+                    pos = cursor.position()
+                    
+                    self.view.editor.setPlainText(new_text)
+                    
+                    # Restaurar posición del cursor si es posible
+                    if pos <= len(new_text):
+                        cursor.setPosition(pos)
+                        self.view.editor.setTextCursor(cursor)
+                        
+                    self.view.editor.blockSignals(False)
+                    self.view.show_status("Recargado desde archivo externo", 2000)
+                    self._trigger_render()
+            except Exception as e:
+                print(f"[Vigilante] Error al recargar: {e}")
+
     def _trigger_render(self):
         self.view.show_status("Renderizando...")
         text = self.view.editor.toPlainText()
         options = self.view.get_current_options()
         options['text'] = text
         options.update(self._cover_data)
+        options['page_config'] = self._page_data
         self._render_request.emit(options)
         
-    @pyqtSlot(str)
+    @Slot(str)
     def _on_render_finished(self, html: str):
         self.view.set_preview_html(html)
 
@@ -325,6 +386,12 @@ class AppController(QObject):
             # Cargar en el editor
             self.view.editor.setPlainText(md_text)
             self.current_file_path = file_path if file_type == 'md' else None
+            
+            # Registrar watcher
+            if self.current_file_path:
+                if self.file_watcher.files():
+                    self.file_watcher.removePaths(self.file_watcher.files())
+                self.file_watcher.addPath(self.current_file_path)
             recovery = self.recovery.load_if_newer(self.current_file_path or 'unsaved.md')
             if recovery and QMessageBox.question(self.view, 'Recuperar cambios', 'Se encontró una recuperación más reciente. ¿Restaurarla?') == QMessageBox.StandardButton.Yes:
                 self.view.editor.setPlainText(recovery['text'])
@@ -333,7 +400,7 @@ class AppController(QObject):
             self.view.show_status(
                 f"Archivo cargado: {os.path.basename(file_path)} [{source_type}]", 5000
             )
-            print(f"[Abrir archivo] ✓ Cargado exitosamente [{source_type}]")
+            print(f"[Abrir archivo] [OK] Cargado exitosamente [{source_type}]")
 
         except Exception as e:
             import traceback
@@ -361,7 +428,7 @@ class AppController(QObject):
             target_path += '.docx'
         pandoc = shutil.which('pandoc')
         if not pandoc:
-            QMessageBox.warning(self.view, 'Pandoc no disponible', 'Para exportar Word instal\u00e1 Pandoc:\n\n' + ('choco install pandoc  o  winget install --id JohnMacFarlane.Pandoc' if platform.system() == 'Windows' else 'brew install pandoc'))
+            QMessageBox.warning(self.view, 'Pandoc no disponible', 'Para exportar Word instalá Pandoc:\n\n' + ('choco install pandoc  o  winget install --id JohnMacFarlane.Pandoc' if platform.system() == 'Windows' else 'brew install pandoc'))
             return
         try:
             with tempfile.NamedTemporaryFile(delete=False, suffix='.md', mode='w', encoding='utf-8') as source:
@@ -394,11 +461,17 @@ class AppController(QObject):
                 self._export_docx(pdf_path, text)
                 return
             if not pdf_path.lower().endswith('.pdf'): pdf_path += '.pdf'
-            footer_text, accepted = QInputDialog.getText(
-                self.view, 'Pie de página',
-                'Texto opcional del pie (la numeración se agrega automáticamente):'
-            )
-            if not accepted: return
+
+            # Construir footer_text desde la configuración de página
+            footer_parts = []
+            if self._page_data.get('footer_left'):
+                footer_parts.append(self._page_data['footer_left'])
+            if self._page_data.get('footer_center'):
+                footer_parts.append(self._page_data['footer_center'])
+            if self._page_data.get('footer_right'):
+                footer_parts.append(self._page_data['footer_right'])
+            footer_text = ' | '.join(footer_parts)
+
             self.view.show_status("Generando PDF...")
             print(f"[Exportar PDF] Destino: {pdf_path}")
             
@@ -427,7 +500,7 @@ class AppController(QObject):
                 if success:
                     QMessageBox.information(self.view, "Éxito", f"PDF generado exitosamente usando {engine}.")
                     self.view.show_status("Exportación exitosa", 3000)
-                    print(f"[Exportar PDF] ✓ Generado con {engine}")
+                    print(f"[Exportar PDF] [OK] Generado con {engine}")
                     
                     # Limpiar temporales de conversión .docx si existen
                     if self._temp_md_path or self._temp_media_dir:

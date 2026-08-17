@@ -132,23 +132,111 @@ class DocumentModel:
         return text
 
     def _get_mermaid_theme_config(self, theme_key: str) -> dict:
-        font_map = {'minimal': 'Space Grotesk, sans-serif', 'classic': 'Literata, serif', 'institutional': 'Inter, sans-serif', 'editorial': 'Inter, sans-serif', 'blueprint': 'IBM Plex Sans, sans-serif', 'pastel': 'Poppins, sans-serif'}
-        font_family = font_map.get(theme_key, 'Inter, sans-serif')
-        theme_vars_map = {
-            'minimal': {'fontFamily': font_family, 'fontSize': '13px', 'nodePadding': '20', 'primaryColor': '#f4f4f5', 'primaryTextColor': '#1a1a1a', 'primaryBorderColor': '#d4d4d8', 'lineColor': '#3a3a3a', 'secondaryColor': '#e4e4e7', 'tertiaryColor': '#ffffff'},
-            'classic': {'fontFamily': font_family, 'fontSize': '13px', 'nodePadding': '20', 'primaryColor': '#f5f0e1', 'primaryTextColor': '#1a1410', 'primaryBorderColor': '#d4c9b0', 'lineColor': '#8b4513', 'secondaryColor': '#f0ebe0', 'tertiaryColor': '#FCFBF4'},
-            'institutional': {'fontFamily': font_family, 'fontSize': '13px', 'nodePadding': '20', 'primaryColor': '#f0f4f8', 'primaryTextColor': '#1e3a5f', 'primaryBorderColor': '#cbd5e1', 'lineColor': '#1e3a5f', 'secondaryColor': '#c9a84c', 'tertiaryColor': '#ffffff'}
+        t = ThemeManager.get_theme(theme_key)
+        font_family = t.get('font_family_content', "'Inter', sans-serif").replace("'", "").split(",")[0].strip()
+        
+        # Notion-style clean, elegant theme variables
+        theme_vars = {
+            'fontFamily': font_family + ', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            'fontSize': '12px',
+            
+            # Nodes (Clean Notion white boxes with subtle crisp border)
+            'primaryColor': '#FFFFFF',
+            'primaryTextColor': '#1F2937',
+            'primaryBorderColor': '#D1D5DB',
+            'nodeBorder': '#D1D5DB',
+            'nodeTextColor': '#1F2937',
+            
+            # Lines and arrows
+            'lineColor': '#6B7280',
+            'arrowheadColor': '#6B7280',
+            
+            # Subgraphs / Clusters
+            'clusterBkg': '#F9FAFB',
+            'clusterBorder': '#E5E7EB',
+            'titleColor': '#374151',
+            
+            # Secondary / Tertiary
+            'secondaryColor': '#F3F4F6',
+            'tertiaryColor': '#FFFFFF',
+            'mainBkg': '#FFFFFF',
+            
+            # Edge Labels
+            'edgeLabelBackground': '#FFFFFF',
+            'labelTextColor': '#4B5563',
+            'labelBoxBkgColor': '#FFFFFF',
+            'labelBoxBorderColor': '#E5E7EB',
+            
+            # Sequence diagram actors & signals
+            'actorBorder': '#D1D5DB',
+            'actorBkg': '#FFFFFF',
+            'actorTextColor': '#1F2937',
+            'actorLineColor': '#9CA3AF',
+            'signalColor': '#6B7280',
+            'signalTextColor': '#374151',
+            'loopTextColor': '#374151',
+            
+            # Notes
+            'noteBorderColor': '#FDE68A',
+            'noteBkgColor': '#FEF9C3',
+            'noteTextColor': '#78350F',
+            
+            # Class diagrams
+            'classText': '#1F2937',
         }
-        vars_dict = theme_vars_map.get(theme_key, theme_vars_map['minimal'])
-        return {"theme": "base", "themeVariables": vars_dict, "flowchart": {"padding": 30, "nodeSpacing": 60, "rankSpacing": 60, "htmlLabels": False, "useMaxWidth": False}, "sequence": {"boxPadding": 30, "useMaxWidth": False}}
+        return {
+            "theme": "base",
+            "themeVariables": theme_vars,
+            "flowchart": {
+                "padding": 16,
+                "nodeSpacing": 45,
+                "rankSpacing": 45,
+                "htmlLabels": True,
+                "useMaxWidth": False,
+                "curve": "basis"
+            },
+            "sequence": {
+                "diagramMarginX": 30,
+                "diagramMarginY": 20,
+                "actorMargin": 50,
+                "width": 140,
+                "height": 45,
+                "boxMargin": 10,
+                "boxTextMargin": 5,
+                "noteMargin": 10,
+                "messageMargin": 35,
+                "mirrorActors": False,
+                "useMaxWidth": False
+            },
+            "class": {
+                "useMaxWidth": False
+            },
+            "state": {
+                "useMaxWidth": False
+            },
+            "er": {
+                "useMaxWidth": False
+            }
+        }
 
     def _process_mermaid_diagrams(self, md_text: str, theme_key: str) -> str:
-        import hashlib, os, tempfile, json, subprocess, html
-        cache_dir = os.path.join(tempfile.gettempdir(), "pdf_converter_mermaid_cache")
-        os.makedirs(cache_dir, exist_ok=True)
+        """Replace mermaid fenced blocks with placeholders before markdown processing."""
+        import html as html_mod
+        self._mermaid_blocks = {}
+        counter = [0]
         def _replace_mermaid(match):
-            return f'''<div class="mermaid-fallback-box"><pre><code>{html.escape(match.group(1).strip())}</code></pre></div>'''
+            code = match.group(1).strip()
+            placeholder = f'<!--MERMAID_PLACEHOLDER_{counter[0]}-->'
+            self._mermaid_blocks[placeholder] = f'<pre class="mermaid">{html_mod.escape(code)}</pre>'
+            counter[0] += 1
+            return placeholder
         return re.sub(r'```mermaid\s*\n(.*?)\n```', _replace_mermaid, md_text, flags=re.DOTALL | re.IGNORECASE)
+
+    def _restore_mermaid_diagrams(self, html: str) -> str:
+        """Restore mermaid placeholders with actual <pre class='mermaid'> tags after markdown processing."""
+        for placeholder, mermaid_html in getattr(self, '_mermaid_blocks', {}).items():
+            html = html.replace(placeholder, mermaid_html)
+        return html
 
     def process_markdown(self, md_text: str, theme_key: str = 'minimal') -> tuple[str, bool]:
         safe_text = self._clean_pandoc_attributes(md_text)
@@ -179,6 +267,9 @@ class DocumentModel:
         html = re.sub(r'^<h1>.*?</h1>\s*', '', html, count=1, flags=re.DOTALL)
         html = re.sub(r'^<p><strong>Integrantes:</strong>.*?</p>\s*', '', html, count=1, flags=re.DOTALL | re.IGNORECASE)
 
+        # Restore mermaid blocks after markdown processing
+        html = self._restore_mermaid_diagrams(html)
+
         import os
         base_dir = os.getcwd()
         def make_absolute_uri(match):
@@ -198,10 +289,17 @@ class DocumentModel:
 
     def _clean_redundant_pagebreaks(self, html: str, has_cover: bool = True) -> str:
         if not html: return html
-        pb_pattern = r'<div[^>]*class="[^"]*page-break[^"]*"[^>]*>\s*</div>'
-        if has_cover: html = re.sub(r'^\s*(?:' + pb_pattern + r'|<p>\s*</p>|\s+)+', '', html, flags=re.IGNORECASE)
-        html = re.sub(r'(?:' + pb_pattern + r'\s*(?:<p>\s*</p>\s*)*){2,}', r'<div class="page-break" style="page-break-after: always; break-after: page;"></div>', html, flags=re.IGNORECASE)
-        html = re.sub(r'(?:' + pb_pattern + r'|<p>\s*</p>|\s+)+$', '', html, flags=re.IGNORECASE)
+        # Fix ReDoS by using a literal marker instead of complex regex
+        html = re.sub(r'<div[^>]*class="[^"]*page-break[^"]*"[^>]*>\s*</div>', 
+                      r'<!--PAGE_BREAK-->', html, flags=re.IGNORECASE)
+                      
+        if has_cover:
+            html = re.sub(r'^\s*(?:<!--PAGE_BREAK-->|<p>\s*</p>|\s+)+', '', html, flags=re.IGNORECASE)
+            
+        html = re.sub(r'(?:<!--PAGE_BREAK-->\s*(?:<p>\s*</p>\s*)*){2,}', r'<!--PAGE_BREAK-->', html, flags=re.IGNORECASE)
+        html = re.sub(r'(?:<!--PAGE_BREAK-->|<p>\s*</p>|\s+)+$', '', html, flags=re.IGNORECASE)
+        
+        html = html.replace('<!--PAGE_BREAK-->', '<div class="page-break" style="page-break-after: always; break-after: page;"></div>')
         return html
 
     def _inject_toc(self, md_text: str) -> str:
@@ -229,6 +327,7 @@ class DocumentModel:
                     subtitle: str = '', materia: str = '', integrantes: str = '', profesores: str = '',
                     show_logo: bool = False, logo_position: str = 'top-left',
                     cover_style: str = 'sidebar_logo',
+                    page_config: dict = None,
                     is_preview: bool = True, title: str = '') -> str:
         
         if not md_text or not md_text.strip():
@@ -299,7 +398,39 @@ class DocumentModel:
         
         fonts_head = """<link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Playfair+Display:wght@700;800&family=Poppins:wght@600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">"""
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Outfit:wght@500;600;700;800&family=Playfair+Display:wght@700;800&family=Poppins:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">"""
+
+        import json as _json
+        mermaid_config = self._get_mermaid_theme_config(theme_key)
+        mermaid_config_json = _json.dumps(mermaid_config)
+        mermaid_script = f"""<script type="module">
+        (async () => {{
+          try {{
+            const {{ default: mermaid }} = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+            mermaid.initialize({{ startOnLoad: false, ...{mermaid_config_json} }});
+            await mermaid.run({{ querySelector: 'pre.mermaid, .mermaid' }});
+
+            // Ajuste proporcional para evitar que diagramas compactos se estiren al 100% del ancho
+            document.querySelectorAll('pre.mermaid svg').forEach(svg => {{
+              if (svg.getAttribute('width') === '100%') {{
+                svg.removeAttribute('width');
+              }}
+              const viewBox = svg.getAttribute('viewBox');
+              if (viewBox) {{
+                const parts = viewBox.split(/[\\s,]+/).map(Number);
+                if (parts.length === 4 && parts[2] > 0) {{
+                  svg.style.maxWidth = Math.min(parts[2], 640) + 'px';
+                }}
+              }}
+            }});
+          }} catch (e) {{
+            console.error('Error inicializando Mermaid:', e);
+          }} finally {{
+            window.mermaidRendered = true;
+            if (window.runPagination) window.runPagination();
+          }}
+        }})();
+        </script>"""
 
         return f"""<!DOCTYPE html>
         <html lang="es">
@@ -312,12 +443,58 @@ class DocumentModel:
           {root_css}
           {core_css}
           {pygments_css}
+          pre.mermaid {{
+              text-align: center;
+              background: transparent !important;
+              border: none !important;
+              padding: 4mm 0 !important;
+              margin: 4mm auto !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+          }}
+          pre.mermaid svg {{
+              max-width: 100% !important;
+              max-height: 115mm !important;
+              width: auto !important;
+              height: auto !important;
+              display: block !important;
+              margin: 0 auto !important;
+          }}
+          /* Notion aesthetic enhancements */
+          pre.mermaid .node rect,
+          pre.mermaid .node polygon,
+          pre.mermaid .node circle {{
+              rx: 6px !important;
+              ry: 6px !important;
+              stroke-width: 1.25px !important;
+              filter: drop-shadow(0 1px 2px rgba(0,0,0,0.04));
+          }}
+          pre.mermaid .cluster rect {{
+              rx: 8px !important;
+              ry: 8px !important;
+              stroke-width: 1px !important;
+              stroke-dasharray: 4 4 !important;
+          }}
+          pre.mermaid .edgeLabel {{
+              border-radius: 4px !important;
+              padding: 2px 6px !important;
+              font-size: 11px !important;
+              background: #ffffff !important;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+          }}
+          pre.mermaid .edgePath .path {{
+              stroke-width: 1.5px !important;
+          }}
           </style>
         </head>
         <body class="theme-{theme_key}">
           {cover_html}
           {content_wrap}
           {katex_footer}
+          {mermaid_script}
           {self._get_pagination_script()}
         </body>
         </html>"""
@@ -476,17 +653,59 @@ class DocumentModel:
         .cover-style-marco_fino .cover-meta-row { border: none !important; display: flex; flex-direction: column; gap: 2mm;}
         .cover-style-marco_fino .cover-meta-row span { color: #9ca3af; letter-spacing: 2px; font-size: 9pt;}
 
-        h1, h2, h3, h4, h5, h6 { font-family: var(--font-family-headings, 'Inter', sans-serif); color: var(--heading-color, #111); margin-top: 0; }
-        h1 { font-size: 20pt; font-weight: 700; margin-top: 10mm; margin-bottom: 4mm; border-bottom: 1px solid #ccc; padding-bottom: 2mm; }
-        h2 { font-size: 14pt; font-weight: 600; margin-top: 7mm; margin-bottom: 3mm; }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-family-headings, 'Inter', sans-serif); color: var(--heading-color, #111); margin-top: 0; page-break-after: avoid !important; break-after: avoid !important; }
+        h1 { font-size: 20pt; font-weight: 700; line-height: 1.25; margin-top: 10mm; margin-bottom: 4mm; border-bottom: var(--h1-border-width, 1px) solid var(--h1-border-color, #ccc); padding-bottom: 2mm; }
+        h2 { font-size: 15pt; font-weight: 700; line-height: 1.3; margin-top: 7.5mm; margin-bottom: 3mm; }
+        h3 { font-size: 13pt; font-weight: 600; line-height: 1.35; margin-top: 5.5mm; margin-bottom: 2.5mm; }
+        h4 { font-size: 12pt; font-weight: 600; line-height: 1.4; margin-top: 4.5mm; margin-bottom: 2mm; color: var(--heading-color, #111); }
+        h5 { font-size: 10.5pt; font-weight: 600; line-height: 1.4; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3.5mm; margin-bottom: 1.5mm; color: var(--muted-color, #64748b); }
+        h6 { font-size: 10pt; font-weight: 600; font-style: italic; line-height: 1.4; margin-top: 3mm; margin-bottom: 1.5mm; color: var(--muted-color, #64748b); }
         p { margin-bottom: 3mm; }
         
-        .codehilite, .highlight { border-radius: 8px; padding: 10px 16px; margin: 12px 0; overflow: visible !important; border: 1px solid #e5e7eb; font-size: 9pt; background: #f9fafb; page-break-inside: avoid !important; break-inside: avoid !important; }
+        .codehilite, .highlight { border-radius: 8px; padding: 12px 18px; margin: 14px 0; overflow: visible !important; border: 1px solid var(--code-border, #313244); font-size: 9.5pt; line-height: 1.5; background: var(--code-bg, #1e1e2e) !important; color: var(--code-color, #cdd6f4) !important; page-break-inside: avoid !important; break-inside: avoid !important; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .codehilite pre, .highlight pre { margin: 0; padding: 0; background: transparent !important; color: inherit !important; }
         pre, code { font-family: 'JetBrains Mono', monospace !important; }
+        
+        /* Estilos de código inline según la paleta del tema */
+        :not(pre) > code {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 0.88em !important;
+            background-color: var(--inline-code-bg, #f3f4f6) !important;
+            color: var(--inline-code-color, #d63384) !important;
+            border: 1px solid var(--inline-code-border, #e1e4e8) !important;
+            padding: 1.5px 5.5px !important;
+            border-radius: 4px !important;
+            word-break: break-word !important;
+            vertical-align: baseline;
+        }
         blockquote { border-left: 4px solid var(--accent-color, #ccc); padding: 8px 16px; margin: 12px 0; background: rgba(0,0,0,0.02); border-radius: 0 8px 8px 0; font-style: italic; }
-        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 10pt; }
-        th, td { padding: 8px 12px; border: 1px solid #e5e7eb; text-align: left; }
-        th { background-color: #f3f4f6 !important; font-weight: 600; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 9.5pt;
+            page-break-inside: auto;
+        }
+        tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid var(--table-border, #e5e7eb);
+            text-align: left;
+            vertical-align: middle;
+        }
+        th {
+            background-color: var(--table-header-bg, #27272a) !important;
+            color: var(--table-header-fg, #ffffff) !important;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            border-color: var(--table-header-bg, #27272a) !important;
+        }
+        tbody tr:nth-child(even) {
+            background-color: var(--table-row-even-bg, #fafafa);
+        }
         
         .page-break { page-break-after: always !important; break-after: page !important; }
         @media print { .page-break { page-break-after: always !important; break-after: page !important; } }
@@ -516,9 +735,21 @@ class DocumentModel:
         (function() {
           'use strict';
           window.katexRendered = window.katexRendered || false;
+          window.mermaidRendered = window.mermaidRendered || false;
           window.paginationDone = false;
+
+          function hasMermaid() {
+            return document.querySelectorAll('pre.mermaid, .mermaid').length > 0;
+          }
+
           function paginate() {
             if (window.paginationDone) return;
+            
+            // Si hay diagramas mermaid y todavia no se renderizaron, esperar a que mermaid termine
+            if (hasMermaid() && !window.mermaidRendered) {
+              return;
+            }
+
             window.paginationDone = true;
             var src = document.getElementById('paginate-content');
             if (!src || !src.children.length) return;
@@ -562,11 +793,24 @@ class DocumentModel:
             }
             document.body.removeChild(ruler);
           }
+
           window.runPagination = function() {
             if (window.paginationDone) return;
-            setTimeout(paginate, 50);
+            if (document.fonts && document.fonts.ready) {
+              document.fonts.ready.then(function() {
+                setTimeout(paginate, 30);
+              });
+            } else {
+              setTimeout(paginate, 30);
+            }
           };
+
           window.addEventListener('load', window.runPagination);
-          setTimeout(window.runPagination, 800);
+
+          // Fallback de seguridad: si mermaid o fonts tardan mas de 2.5s, forzar paginacion
+          setTimeout(function() {
+            window.mermaidRendered = true;
+            window.runPagination();
+          }, 2500);
         })();
         </script>"""

@@ -1,5 +1,5 @@
-from PyQt6.QtGui import QSyntaxHighlighter, QTextCharFormat, QFont, QColor
-from PyQt6.QtCore import QRegularExpression
+from PySide6.QtGui import QSyntaxHighlighter, QTextCharFormat, QFont, QColor
+from PySide6.QtCore import QRegularExpression
 from mvc.models.theme_manager import PASTEL_COLORS
 
 class MarkdownHighlighter(QSyntaxHighlighter):
@@ -28,68 +28,68 @@ class MarkdownHighlighter(QSyntaxHighlighter):
 
         # 2. Negrita
         self.bold_delim_fmt = QTextCharFormat()
-        self.bold_delim_fmt.setForeground(self._color("#5c6370"))
+        self.bold_delim_fmt.setForeground(self._color("#585b70"))
 
         self.bold_text_fmt = QTextCharFormat()
         self.bold_text_fmt.setFontWeight(QFont.Weight.Bold)
-        self.bold_text_fmt.setForeground(self._color("#e8eaed"))
+        self.bold_text_fmt.setForeground(self._color("#cdd6f4"))
 
         # 3. Cursiva
         self.italic_delim_fmt = QTextCharFormat()
-        self.italic_delim_fmt.setForeground(self._color("#5c6370"))
+        self.italic_delim_fmt.setForeground(self._color("#585b70"))
 
         self.italic_text_fmt = QTextCharFormat()
         self.italic_text_fmt.setFontItalic(True)
-        self.italic_text_fmt.setForeground(self._color("#e8eaed"))
+        self.italic_text_fmt.setForeground(self._color("#cdd6f4"))
 
         # 4. Código Inline
         self.inline_code_fmt = QTextCharFormat()
         self.inline_code_fmt.setFontFamilies(["JetBrains Mono", "Fira Code", "Consolas", "monospace"])
-        self.inline_code_fmt.setForeground(self._color("#e5c07b"))
-        self.inline_code_fmt.setBackground(self._color("#1e2235"))
+        self.inline_code_fmt.setForeground(self._color("#fab387"))
+        self.inline_code_fmt.setBackground(self._color("#313244"))
 
         # 5. Bloques de Código (Fence line: ```)
         self.code_fence_fmt = QTextCharFormat()
         self.code_fence_fmt.setFontFamilies(["JetBrains Mono", "Fira Code", "Consolas", "monospace"])
-        self.code_fence_fmt.setForeground(self._color("#61afef"))
-        self.code_fence_fmt.setBackground(self._color("#1a1d2d"))
+        self.code_fence_fmt.setForeground(self._color("#89b4fa"))
+        self.code_fence_fmt.setBackground(self._color("#181825"))
         self.code_fence_fmt.setFontWeight(QFont.Weight.Bold)
 
         self.code_block_inside_fmt = QTextCharFormat()
         self.code_block_inside_fmt.setFontFamilies(["JetBrains Mono", "Fira Code", "Consolas", "monospace"])
-        self.code_block_inside_fmt.setForeground(self._color("#abb2bf"))
-        self.code_block_inside_fmt.setBackground(self._color("#161824"))
+        self.code_block_inside_fmt.setForeground(self._color("#bac2de"))
+        self.code_block_inside_fmt.setBackground(self._color("#181825"))
 
         # 6. Citas (> texto)
         self.quote_prefix_fmt = QTextCharFormat()
-        self.quote_prefix_fmt.setForeground(self._color("#c9a84c"))
+        self.quote_prefix_fmt.setForeground(self._color("#f9e2af"))
         self.quote_prefix_fmt.setFontWeight(QFont.Weight.Bold)
 
         self.quote_text_fmt = QTextCharFormat()
-        self.quote_text_fmt.setForeground(self._color("#c9a84c"))
+        self.quote_text_fmt.setForeground(self._color("#f9e2af"))
         self.quote_text_fmt.setFontItalic(True)
 
         # 7. Enlaces [texto](url)
         self.link_delim_fmt = QTextCharFormat()
-        self.link_delim_fmt.setForeground(self._color("#5c6370"))
+        self.link_delim_fmt.setForeground(self._color("#585b70"))
 
         self.link_text_fmt = QTextCharFormat()
-        self.link_text_fmt.setForeground(self._color("#61afef"))
+        self.link_text_fmt.setForeground(self._color("#89b4fa"))
         self.link_text_fmt.setFontWeight(QFont.Weight.Bold)
 
         self.link_url_fmt = QTextCharFormat()
-        self.link_url_fmt.setForeground(self._color("#569cd6"))
+        self.link_url_fmt.setForeground(self._color("#74c7ec"))
         self.link_url_fmt.setFontItalic(True)
 
         # 8. Saltos de página <!-- PAGEBREAK --> / \newpage
         self.pagebreak_fmt = QTextCharFormat()
-        self.pagebreak_fmt.setForeground(self._color("#ff79c6"))
-        self.pagebreak_fmt.setBackground(self._color("#2d3149"))
+        self.pagebreak_fmt.setForeground(self._color("#f38ba8"))
+        self.pagebreak_fmt.setBackground(self._color("#45475a"))
         self.pagebreak_fmt.setFontWeight(QFont.Weight.Bold)
 
         # 9. Listas
         self.list_fmt = QTextCharFormat()
-        self.list_fmt.setForeground(self._color("#50fa7b"))
+        self.list_fmt.setForeground(self._color("#a6e3a1"))
         self.list_fmt.setFontWeight(QFont.Weight.Bold)
 
     def _init_rules(self):

@@ -1,6 +1,6 @@
-from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
-from PyQt6.QtCore import QUrl
+from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
+from PySide6.QtCore import QUrl
 import os
 
 class CustomWebEnginePage(QWebEnginePage):

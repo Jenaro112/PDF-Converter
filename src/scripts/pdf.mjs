@@ -43,9 +43,7 @@ await page.pdf({
   path: pdfPath,
   format: "A4",
   printBackground: true,
-  displayHeaderFooter: true,
-  footerTemplate: `<div style="width:100%; font-size:8px; color:#555; padding:0 18mm; text-align:center; font-family:Arial,sans-serif;">${footer ? `${footer} · ` : ""}Página <span class="pageNumber"></span> de <span class="totalPages"></span></div>`,
-  headerTemplate: '<span></span>',
+  displayHeaderFooter: false,
   preferCSSPageSize: true,
   margin: { top: "0px", right: "0px", bottom: "0px", left: "0px" },
 });

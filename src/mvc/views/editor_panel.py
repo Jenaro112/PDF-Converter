@@ -1,7 +1,7 @@
-from PyQt6.QtWidgets import QPlainTextEdit, QWidget, QTextEdit
-from PyQt6.QtGui import QFont, QColor, QPainter, QPaintEvent, QTextFormat
-from PyQt6.QtCore import Qt, QRect, QSize, pyqtSignal
-from PyQt6.QtGui import QKeySequence
+from PySide6.QtWidgets import QPlainTextEdit, QWidget, QTextEdit
+from PySide6.QtGui import QFont, QColor, QPainter, QPaintEvent, QTextFormat
+from PySide6.QtCore import Qt, QRect, QSize, Signal
+from PySide6.QtGui import QKeySequence
 from .markdown_highlighter import MarkdownHighlighter
 
 class LineNumberArea(QWidget):
@@ -24,6 +24,9 @@ class EditorPanel(QPlainTextEdit):
     - Resaltado de la línea actual del cursor
     - Tipografía monoespaciada prolija (JetBrains Mono / Fira Code)
     """
+    # Signal for pasted images
+    image_pasted = Signal(object)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
@@ -33,14 +36,15 @@ class EditorPanel(QPlainTextEdit):
         # Placeholder con estilo acorde
         self.setPlaceholderText("Escribí Markdown aquí…")
 
+        # Catppuccin Mocha colors for the editor
         self.setStyleSheet("""
             QPlainTextEdit {
-                background-color: #0b0c16;
-                color: #e8eaed;
+                background-color: #1e1e2e;
+                color: #cdd6f4;
                 border: none;
                 padding: 8px 12px;
-                selection-background-color: #282e4a;
-                selection-color: #ffffff;
+                selection-background-color: #45475a;
+                selection-color: #cdd6f4;
                 font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
                 font-size: 10.5pt;
             }
@@ -92,7 +96,9 @@ class EditorPanel(QPlainTextEdit):
         extra_selections = []
         if not self.isReadOnly():
             selection = QTextEdit.ExtraSelection()
-            line_color = QColor("#161826")
+            # Catppuccin Surface0 with slight transparency effect
+            line_color = QColor("#313244")
+            line_color.setAlpha(100)
             selection.format.setBackground(line_color)
             selection.format.setProperty(QTextFormat.Property.FullWidthSelection, True)
             selection.cursor = self.textCursor()
@@ -103,10 +109,11 @@ class EditorPanel(QPlainTextEdit):
 
     def line_number_area_paint_event(self, event: QPaintEvent):
         painter = QPainter(self.line_number_area)
-        painter.fillRect(event.rect(), QColor("#121422"))
+        # Catppuccin Mantle for gutter background
+        painter.fillRect(event.rect(), QColor("#181825"))
 
-        # Borde derecho del gutter
-        painter.setPen(QColor("#1e2235"))
+        # Catppuccin Surface0 for gutter right border
+        painter.setPen(QColor("#313244"))
         painter.drawLine(event.rect().topRight(), event.rect().bottomRight())
 
         block = self.firstVisibleBlock()
@@ -120,12 +127,14 @@ class EditorPanel(QPlainTextEdit):
             if block.isVisible() and bottom >= event.rect().top():
                 number = str(block_number + 1)
                 if block_number == current_block_number:
-                    painter.setPen(QColor("#73d0ff"))  # Resaltar número de línea activa
+                    # Catppuccin Blue for active line number
+                    painter.setPen(QColor("#89b4fa"))
                     font = painter.font()
                     font.setBold(True)
                     painter.setFont(font)
                 else:
-                    painter.setPen(QColor("#4a5278"))  # Líneas inactivas
+                    # Catppuccin Overlay0 for inactive line numbers
+                    painter.setPen(QColor("#6c7086"))
                     font = painter.font()
                     font.setBold(False)
                     painter.setFont(font)
@@ -152,4 +161,3 @@ class EditorPanel(QPlainTextEdit):
                 self.image_pasted.emit(image)
                 return
         super().insertFromMimeData(source)
-    image_pasted = pyqtSignal(object)
