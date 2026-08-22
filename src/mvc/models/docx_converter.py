@@ -5,6 +5,7 @@ import platform
 import shutil
 from pathlib import Path
 from typing import Optional
+from utils.logger import logger
 
 _IS_WINDOWS = platform.system() == 'Windows'
 
@@ -81,13 +82,13 @@ class DocxConverter:
                 if result.returncode == 0 and os.path.exists(temp_md):
                     pandoc_success = True
                 else:
-                    print(f"[Pandoc Error] {result.stderr}")
+                    logger.warning("Pandoc", f"Fallo al ejecutar Pandoc: {result.stderr.strip()}")
             except Exception as e:
-                print(f"[Pandoc Exception] {e}")
+                logger.error("Pandoc", f"Excepción al ejecutar Pandoc: {e}")
 
         # Fallback a Mammoth / python-docx si Pandoc falló o no está instalado
         if not pandoc_success:
-            print("[DocxConverter] Probando fallback de conversión con Mammoth / python-docx...")
+            logger.info("Docx", "Probando fallback de conversión con Mammoth / python-docx...")
             converted_text = self._convert_with_fallback(docx_path, temp_md, media_dir)
             if not converted_text:
                 return False, "", ""
@@ -139,7 +140,7 @@ class DocxConverter:
         except ImportError:
             pass
 
-        print("[Error] No se encontró Pandoc, Mammoth ni python-docx para convertir el archivo .docx")
+        logger.error("Docx", "No se encontró Pandoc, Mammoth ni python-docx para convertir el archivo .docx")
         return None
 
     @staticmethod
@@ -162,7 +163,7 @@ class DocxConverter:
         # 2. Fallback: Si no hay encabezados # o ## en el documento, inferir patrones comunes
         has_headings = bool(re.search(r'^\s*#{1,3}\s+\S+', md_text, re.MULTILINE))
         if not has_headings:
-            print("[DocxConverter] No se detectaron estilos Heading en el .docx. Aplicando inferencia de títulos...")
+            logger.info("Docx", "No se detectaron estilos Heading en el .docx. Aplicando inferencia de títulos...")
             lines = md_text.split('\n')
             new_lines = []
             for line in lines:
@@ -209,7 +210,7 @@ class DocxConverter:
             return self.convert_docx_to_md(input_path)
 
         else:
-            print(f"[Error] Tipo de archivo no soportado: {Path(input_path).suffix}")
+            logger.error("Archivo", f"Tipo de archivo no soportado: {Path(input_path).suffix}")
             return False, "", None
 
     def validate_images(self, md_text: str, base_dir: str) -> list[str]:

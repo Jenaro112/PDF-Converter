@@ -59,7 +59,8 @@ SVG_PATHS = {
     'zoom_out': '<circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line>',
     'download': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>',
     'file-text': '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>',
-    'pagebreak': '<path d="M4 18h4v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4zm12 12h4v-2h-4v2zm-4 0h2v-2h-2v2z"></path>'
+    'pagebreak': '<path d="M4 18h4v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4zm12 12h4v-2h-4v2zm-4 0h2v-2h-2v2z"></path>',
+    'format': '<path d="M4 7h16M4 12h10M4 17h12"></path>',
 }
 
 
@@ -199,6 +200,7 @@ class MainWindow(QMainWindow):
     combine_requested = Signal()
     pagebreak_requested = Signal()
     save_requested = Signal()
+    format_requested = Signal()
     
     def __init__(self, theme_choices: list[tuple[str, str]]):
         super().__init__()
@@ -403,9 +405,10 @@ class MainWindow(QMainWindow):
         highlight_btn.setMenu(highlight_menu)
         t_layout.addWidget(highlight_btn)
 
-        btn_find = self._create_btn(" Buscar", 'search', _BLUE)
-        btn_find.clicked.connect(self.show_find_panel)
-        t_layout.addWidget(btn_find)
+        btn_format = self._create_btn(" Formatear", 'format', _SAPPHIRE)
+        btn_format.setToolTip("Formatear Markdown (preserva KaTeX y estilos)")
+        btn_format.clicked.connect(self.format_requested.emit)
+        t_layout.addWidget(btn_format)
 
         btn_pagebreak = self._create_btn(" Salto de Página", 'pagebreak', _LAVENDER)
         btn_pagebreak.setToolTip("Insertar salto de página (<!-- PAGEBREAK -->)")
@@ -623,7 +626,12 @@ class MainWindow(QMainWindow):
         }
         
     def set_preview_html(self, html: str):
-        self.preview.set_html(html)
+        self.preview.load_shell(html)
+        self.status.showMessage("Vista previa actualizada", 2000)
+
+    def set_preview_content(self, body_html: str):
+        """Actualiza solo el contenido sin recargar la página."""
+        self.preview.update_content(body_html)
         self.status.showMessage("Vista previa actualizada", 2000)
 
     def show_status(self, message: str, timeout: int = 0):

@@ -13,6 +13,7 @@ except ImportError:
 from markdown import markdown as md_convert
 from markdown.extensions.extra import ExtraExtension
 from .theme_manager import ThemeManager
+from .markdown_formatter import MarkdownFormatter
 
 _IS_WINDOWS = platform.system() == 'Windows'
 
@@ -23,6 +24,10 @@ class DocumentModel:
     """
     def __init__(self):
         self.highlight_css = self._generate_highlight_css()
+
+    def format_markdown(self, md_text: str) -> str:
+        """Formatea el Markdown preservando fórmulas LaTeX y extensiones."""
+        return MarkdownFormatter.format_text(md_text)
 
     def _generate_highlight_css(self):
         if not PYGMENTS_AVAILABLE:
@@ -323,6 +328,79 @@ class DocumentModel:
             return result
         return re.sub(r'<h([1-3])(\s*)>', repl, html)
 
+    def _build_logo_html(self, show_cover: bool, show_logo: bool, logo_position: str = 'top-left') -> str:
+        if not (show_cover and show_logo):
+            return ""
+        import os
+        logo_path = None
+        for candidate in ["assets/logo.png", "assets/UADER_logo.png"]:
+            candidate_abs = os.path.normpath(os.path.join(os.getcwd(), candidate))
+            if os.path.exists(candidate_abs):
+                logo_path = candidate_abs
+                break
+        if not logo_path and os.path.exists(os.path.join(os.getcwd(), "assets")):
+            assets_dir = os.path.join(os.getcwd(), "assets")
+            files = [f for f in os.listdir(assets_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.svg'))]
+            if files:
+                logo_path = os.path.join(assets_dir, files[0])
+        if logo_path:
+            logo_uri = Path(logo_path).as_uri()
+            return f'<img src="{logo_uri}" class="cover-logo logo-{logo_position}" alt="Logo Facultad">'
+        return ""
+
+    def _build_cover_html(self, show_cover: bool, doc_title: str, subtitle: str = '',
+                          subject: str = '', authors: str = '', profesores: str = '',
+                          logo_html: str = '', cover_style: str = 'sidebar_logo') -> str:
+        if not (show_cover and doc_title):
+            return ""
+        sub_str, subj_str, auth_str, prof_str = subtitle.strip(), subject.strip(), authors.strip(), profesores.strip()
+        meta = ''.join(
+            f'<div class="cover-meta-row"><span>{label}</span><b>{value}</b></div>'
+            for label, value in [('Materia', subj_str), ('Integrantes', auth_str), ('Docentes', prof_str)] if value
+        )
+        subtitle_html = f'<p class="cover-subtitle">{sub_str}</p>' if sub_str else ''
+        style = cover_style if cover_style in {
+            'sidebar_logo', 'academica_clasica', 'corporativa', 'bloque_color', 'marco_fino', 'folio'
+        } else 'sidebar_logo'
+        return f'''<div class="page cover-page cover-style-{style}">
+          <div class="cover-header">{logo_html}</div>
+          <div class="cover-content"><h1>{doc_title}</h1>{subtitle_html}</div>
+          <div class="cover-meta">{meta}</div>
+        </div>'''
+
+    def render_preview_content(self, md_text: str, theme_key: str = 'minimal', show_cover: bool = True,
+                               subtitle: str = '', materia: str = '', integrantes: str = '', profesores: str = '',
+                               show_logo: bool = False, logo_position: str = 'top-left',
+                               cover_style: str = 'sidebar_logo', title: str = '') -> str:
+        """
+        Genera únicamente el HTML interno del cuerpo (portada + markdown procesado)
+        para inyección directa via JavaScript sin recargar la página.
+        """
+        if not md_text or not md_text.strip():
+            return '<div id="paginate-content"><p style="color:var(--muted-color);padding:22mm;">Escribí Markdown aquí…</p></div>'
+
+        md_text = self._inject_toc(md_text)
+        body_html, _ = self.process_markdown(md_text, theme_key=theme_key)
+        body_html = self._add_heading_ids(body_html)
+        md_title, md_subject, md_authors = self.extract_metadata(md_text)
+
+        doc_title = title.strip() if title.strip() else (md_title if md_title else "Documento")
+        subject = materia.strip() if materia.strip() else md_subject
+        authors = integrantes.strip() if integrantes.strip() else md_authors
+
+        has_cover = bool(show_cover and doc_title)
+        body_html = self._clean_redundant_pagebreaks(body_html, has_cover=has_cover)
+
+        logo_html = self._build_logo_html(show_cover, show_logo, logo_position)
+        cover_html = self._build_cover_html(
+            show_cover, doc_title, subtitle, subject, authors, profesores, logo_html, cover_style
+        )
+
+        return f"""{cover_html}
+<div id="paginate-content">
+{body_html}
+</div>"""
+
     def render_html(self, md_text: str, theme_key: str = 'minimal', show_cover: bool = True,
                     subtitle: str = '', materia: str = '', integrantes: str = '', profesores: str = '',
                     show_logo: bool = False, logo_position: str = 'top-left',
@@ -343,48 +421,14 @@ class DocumentModel:
         doc_title = title.strip() if title.strip() else (md_title if md_title else "Documento")
         subject = materia.strip() if materia.strip() else (md_subject if 'md_subject' in locals() else '')
         authors = integrantes.strip() if integrantes.strip() else (md_authors if 'md_authors' in locals() else '')
-        profs = profesores.strip()
 
         has_cover = bool(show_cover and doc_title)
         body_html = self._clean_redundant_pagebreaks(body_html, has_cover=has_cover)
 
-        logo_html = ""
-        if show_cover and show_logo:
-            import os
-            logo_path = None
-            for candidate in ["assets/logo.png", "assets/UADER_logo.png"]:
-                candidate_abs = os.path.normpath(os.path.join(os.getcwd(), candidate))
-                if os.path.exists(candidate_abs):
-                    logo_path = candidate_abs
-                    break
-            if not logo_path and os.path.exists(os.path.join(os.getcwd(), "assets")):
-                assets_dir = os.path.join(os.getcwd(), "assets")
-                files = [f for f in os.listdir(assets_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.svg'))]
-                if files:
-                    logo_path = os.path.join(assets_dir, files[0])
-            if logo_path:
-                logo_uri = Path(logo_path).as_uri()
-                logo_html = f'<img src="{logo_uri}" class="cover-logo logo-{logo_position}" alt="Logo Facultad">'
-
-        cover_html = ""
-        if show_cover and doc_title:
-            sub_str, subj_str, auth_str, prof_str = subtitle.strip(), subject.strip(), authors.strip(), profesores.strip()
-            meta = ''.join(
-                f'<div class="cover-meta-row"><span>{label}</span><b>{value}</b></div>'
-                for label, value in [('Materia', subj_str), ('Integrantes', auth_str), ('Docentes', prof_str)] if value
-            )
-            subtitle_html = f'<p class="cover-subtitle">{sub_str}</p>' if sub_str else ''
-            
-            # --- NUEVA VALIDACIÓN DE ESTILOS ---
-            style = cover_style if cover_style in {
-                'sidebar_logo', 'academica_clasica', 'corporativa', 'bloque_color', 'marco_fino', 'folio'
-            } else 'sidebar_logo'
-            
-            cover_html = f'''<div class="page cover-page cover-style-{style}">
-              <div class="cover-header">{logo_html}</div>
-              <div class="cover-content"><h1>{doc_title}</h1>{subtitle_html}</div>
-              <div class="cover-meta">{meta}</div>
-            </div>'''
+        logo_html = self._build_logo_html(show_cover, show_logo, logo_position)
+        cover_html = self._build_cover_html(
+            show_cover, doc_title, subtitle, subject, authors, profesores, logo_html, cover_style
+        )
 
         root_css = ThemeManager.generate_root_css(theme_key) if hasattr(ThemeManager, 'generate_root_css') else ""
         katex_head = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">'
@@ -392,7 +436,12 @@ class DocumentModel:
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
         onload='renderMathInElement(document.body, {delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"], throwOnError: false});'></script>"""
         katex_footer = katex_footer.replace("});", "}); window.katexRendered = true; if(window.runPagination) window.runPagination();")
-        content_wrap = f'<div id="paginate-content">\n{body_html}\n</div>'
+
+        if is_preview:
+            content_wrap = f'<div id="preview-container">\n{cover_html}\n<div id="paginate-content">\n{body_html}\n</div>\n</div>'
+        else:
+            content_wrap = f'{cover_html}\n<div id="paginate-content">\n{body_html}\n</div>'
+
         core_css = self._get_core_css(is_preview)
         pygments_css = self.get_pygments_css(theme_key)
         
@@ -407,6 +456,8 @@ class DocumentModel:
         (async () => {{
           try {{
             const {{ default: mermaid }} = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+            window._mermaid = mermaid;
+            window._mermaidConfig = {mermaid_config_json};
             mermaid.initialize({{ startOnLoad: false, ...{mermaid_config_json} }});
             await mermaid.run({{ querySelector: 'pre.mermaid, .mermaid' }});
 
@@ -431,6 +482,133 @@ class DocumentModel:
           }}
         }})();
         </script>"""
+
+        update_script = """<script>
+        window.updateContent = function(newHtml) {
+          var container = document.getElementById('preview-container');
+          if (!container) return;
+
+          var prevScrollY = window.scrollY;
+
+          // 1. Parsear nuevo contenido en contenedor temporal en memoria
+          var temp = document.createElement('div');
+          temp.innerHTML = newHtml;
+
+          // 2. Renderizar KaTeX sobre el árbol en memoria
+          if (window.renderMathInElement) {
+            try {
+              renderMathInElement(temp, {
+                delimiters: [
+                  {left: "$$", right: "$$", display: true},
+                  {left: "$", right: "$", display: false}
+                ],
+                ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
+                throwOnError: false
+              });
+            } catch(e) {
+              console.error("Error KaTeX update:", e);
+            }
+          }
+
+          // 3. Paginar en memoria directamente a hojas A4 (.page)
+          var fragment = document.createDocumentFragment();
+          var coverPage = temp.querySelector('.cover-page');
+          if (coverPage) {
+            fragment.appendChild(coverPage);
+          }
+
+          var src = temp.querySelector('#paginate-content');
+          if (src && src.children.length) {
+            var children = Array.from(src.children);
+
+            var calcEl = document.createElement('div');
+            calcEl.style.cssText = 'position:fixed;left:-9999px;top:0;height:257mm;width:210mm;padding:0 20mm;box-sizing:border-box;visibility:hidden;';
+            document.body.appendChild(calcEl);
+            var maxPagePx = calcEl.clientHeight || 971;
+            document.body.removeChild(calcEl);
+
+            var ruler = document.createElement('div');
+            ruler.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;padding:0 20mm;box-sizing:border-box;overflow:hidden;font-family:inherit;font-size:inherit;line-height:inherit;';
+            document.body.appendChild(ruler);
+
+            var currentPage = document.createElement('div');
+            currentPage.className = 'page';
+            fragment.appendChild(currentPage);
+
+            for (var i = 0; i < children.length; i++) {
+              var el = children[i];
+              var isManualBreak = (el.classList && el.classList.contains('page-break'));
+              if (isManualBreak) {
+                currentPage = document.createElement('div');
+                currentPage.className = 'page';
+                fragment.appendChild(currentPage);
+                ruler.innerHTML = '';
+                continue;
+              }
+              var clone = el.cloneNode(true);
+              ruler.appendChild(clone);
+              if (ruler.scrollHeight > maxPagePx && currentPage.children.length > 0) {
+                ruler.innerHTML = '';
+                currentPage = document.createElement('div');
+                currentPage.className = 'page';
+                fragment.appendChild(currentPage);
+                ruler.appendChild(clone);
+              }
+              currentPage.appendChild(el);
+            }
+            document.body.removeChild(ruler);
+          } else if (src) {
+            var emptyPage = document.createElement('div');
+            emptyPage.className = 'page';
+            emptyPage.appendChild(src);
+            fragment.appendChild(emptyPage);
+          }
+
+          // 4. Reemplazo atómico: el DOM nunca colapsa a altura 0
+          container.replaceChildren(fragment);
+
+          // 5. Preservar y restaurar la posición de scroll exacta
+          if (prevScrollY > 0) {
+            window.scrollTo(0, prevScrollY);
+            requestAnimationFrame(function() {
+              window.scrollTo(0, prevScrollY);
+            });
+          }
+
+          // 6. Re-renderizar diagramas Mermaid si existen
+          if (window._mermaid) {
+            try {
+              var mermaids = container.querySelectorAll('pre.mermaid, .mermaid');
+              if (mermaids.length > 0) {
+                mermaids.forEach(function(el) {
+                  el.removeAttribute('data-processed');
+                });
+                window._mermaid.run({ querySelector: '#preview-container pre.mermaid, #preview-container .mermaid' }).then(function() {
+                  container.querySelectorAll('pre.mermaid svg').forEach(function(svg) {
+                    if (svg.getAttribute('width') === '100%') {
+                      svg.removeAttribute('width');
+                    }
+                    var viewBox = svg.getAttribute('viewBox');
+                    if (viewBox) {
+                      var parts = viewBox.split(/[\\s,]+/).map(Number);
+                      if (parts.length === 4 && parts[2] > 0) {
+                        svg.style.maxWidth = Math.min(parts[2], 640) + 'px';
+                      }
+                    }
+                  });
+                  if (prevScrollY > 0) {
+                    window.scrollTo(0, prevScrollY);
+                  }
+                }).catch(function(e) {
+                  console.error("Error Mermaid update:", e);
+                });
+              }
+            } catch(e) {
+              console.error("Error Mermaid update:", e);
+            }
+          }
+        };
+        </script>""" if is_preview else ""
 
         return f"""<!DOCTYPE html>
         <html lang="es">
@@ -491,10 +669,10 @@ class DocumentModel:
           </style>
         </head>
         <body class="theme-{theme_key}">
-          {cover_html}
           {content_wrap}
           {katex_footer}
           {mermaid_script}
+          {update_script}
           {self._get_pagination_script()}
         </body>
         </html>"""
@@ -661,6 +839,20 @@ class DocumentModel:
         h5 { font-size: 10.5pt; font-weight: 600; line-height: 1.4; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3.5mm; margin-bottom: 1.5mm; color: var(--muted-color, #64748b); }
         h6 { font-size: 10pt; font-weight: 600; font-style: italic; line-height: 1.4; margin-top: 3mm; margin-bottom: 1.5mm; color: var(--muted-color, #64748b); }
         p { margin-bottom: 3mm; }
+
+        /* Listas — jerarquía visual correcta */
+        ul, ol { margin: 2mm 0; padding-left: 8mm; }
+        ul ul, ol ol, ul ol, ol ul { margin: 1mm 0; padding-left: 6mm; }
+        ul ul ul, ol ol ol, ul ol ul, ol ul ol { padding-left: 5mm; }
+        li { margin-bottom: 1.5mm; }
+        li > ul, li > ol { margin-top: 1mm; }
+        ul { list-style-type: disc; }
+        ul ul { list-style-type: circle; }
+        ul ul ul { list-style-type: square; }
+
+        /* Task lists (pymdownx.tasklist) */
+        ul.task-list { list-style: none; padding-left: 4mm; }
+        ul.task-list li { position: relative; }
         
         .codehilite, .highlight { border-radius: 8px; padding: 12px 18px; margin: 14px 0; overflow: visible !important; border: 1px solid var(--code-border, #313244); font-size: 9.5pt; line-height: 1.5; background: var(--code-bg, #1e1e2e) !important; color: var(--code-color, #cdd6f4) !important; page-break-inside: avoid !important; break-inside: avoid !important; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
         .codehilite pre, .highlight pre { margin: 0; padding: 0; background: transparent !important; color: inherit !important; }
@@ -717,6 +909,8 @@ class DocumentModel:
         if is_preview:
             css += """
             body { background: #e5e5e5; padding: 40px 0; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; overflow-y: auto; }
+            #preview-container { width: 100%; display: flex; flex-direction: column; align-items: center; }
+            #paginate-content { width: 210mm; min-height: 297mm; box-sizing: border-box; background: #fff; padding: 20mm; margin-bottom: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.35); flex-shrink: 0; }
             .page { width: 210mm; min-height: 297mm; box-sizing: border-box; background: #fff; padding: 20mm; margin-bottom: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.35); flex-shrink: 0; }
             .cover-page { padding: 40mm 20mm !important; }
             .cover-page.cover-style-sidebar_logo, .cover-page.cover-style-bloque_color { padding: 0 !important; }
@@ -737,24 +931,24 @@ class DocumentModel:
           window.katexRendered = window.katexRendered || false;
           window.mermaidRendered = window.mermaidRendered || false;
           window.paginationDone = false;
+          var _paginateTimer = null;
 
           function hasMermaid() {
             return document.querySelectorAll('pre.mermaid, .mermaid').length > 0;
           }
 
           function paginate() {
-            if (window.paginationDone) return;
+            var container = document.getElementById('preview-container') || document.body;
+            var src = document.getElementById('paginate-content');
+            if (!src || !src.children.length) return;
             
-            // Si hay diagramas mermaid y todavia no se renderizaron, esperar a que mermaid termine
+            // Si hay diagramas mermaid y todavia no se renderizaron, esperar
             if (hasMermaid() && !window.mermaidRendered) {
               return;
             }
 
-            window.paginationDone = true;
-            var src = document.getElementById('paginate-content');
-            if (!src || !src.children.length) return;
+            var prevScrollY = window.scrollY;
             var children = Array.from(src.children);
-            src.remove();
             
             var calcEl = document.createElement('div');
             calcEl.style.cssText = 'position:fixed;left:-9999px;top:0;height:257mm;width:210mm;padding:0 20mm;box-sizing:border-box;visibility:hidden;';
@@ -766,9 +960,15 @@ class DocumentModel:
             ruler.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;padding:0 20mm;box-sizing:border-box;overflow:hidden;font-family:inherit;font-size:inherit;line-height:inherit;';
             document.body.appendChild(ruler);
             
+            var fragment = document.createDocumentFragment();
+            var cover = container.querySelector('.cover-page');
+            if (cover) {
+              fragment.appendChild(cover);
+            }
+
             var currentPage = document.createElement('div');
             currentPage.className = 'page';
-            document.body.appendChild(currentPage);
+            fragment.appendChild(currentPage);
             
             for (var i = 0; i < children.length; i++) {
               var el = children[i];
@@ -776,7 +976,7 @@ class DocumentModel:
               if (isManualBreak) {
                 currentPage = document.createElement('div');
                 currentPage.className = 'page';
-                document.body.appendChild(currentPage);
+                fragment.appendChild(currentPage);
                 ruler.innerHTML = '';
                 continue;
               }
@@ -786,26 +986,42 @@ class DocumentModel:
                 ruler.innerHTML = '';
                 currentPage = document.createElement('div');
                 currentPage.className = 'page';
-                document.body.appendChild(currentPage);
+                fragment.appendChild(currentPage);
                 ruler.appendChild(clone);
               }
               currentPage.appendChild(el);
             }
             document.body.removeChild(ruler);
+
+            container.replaceChildren(fragment);
+            window.paginationDone = true;
+
+            if (prevScrollY > 0) {
+              window.scrollTo(0, prevScrollY);
+              requestAnimationFrame(function() {
+                window.scrollTo(0, prevScrollY);
+              });
+            }
           }
 
-          window.runPagination = function() {
-            if (window.paginationDone) return;
-            if (document.fonts && document.fonts.ready) {
-              document.fonts.ready.then(function() {
-                setTimeout(paginate, 30);
-              });
-            } else {
-              setTimeout(paginate, 30);
-            }
+          window.schedulePagination = function(delay) {
+            if (_paginateTimer) clearTimeout(_paginateTimer);
+            _paginateTimer = setTimeout(function() {
+              if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(paginate);
+              } else {
+                paginate();
+              }
+            }, delay || 500);
           };
 
-          window.addEventListener('load', window.runPagination);
+          window.runPagination = function() {
+            window.schedulePagination(30);
+          };
+
+          window.addEventListener('load', function() {
+            window.runPagination();
+          });
 
           // Fallback de seguridad: si mermaid o fonts tardan mas de 2.5s, forzar paginacion
           setTimeout(function() {

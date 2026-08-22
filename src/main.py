@@ -11,8 +11,10 @@ if _src_dir not in sys.path:
 
 from PySide6.QtWidgets import QApplication
 from mvc.controllers.app_controller import AppController
+from utils.logger import logger
 
 def main():
+    logger.banner()
     # Manejar Ctrl+C y cierre de ventana limpiamente sin mensajes de interrupción
     # SIGINT funciona en todas las plataformas
     signal.signal(signal.SIGINT, signal.SIG_DFL)

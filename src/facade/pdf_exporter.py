@@ -2,6 +2,7 @@ import os
 import platform
 import subprocess
 from pathlib import Path
+from utils.logger import logger
 
 _IS_WINDOWS = platform.system() == 'Windows'
 
@@ -35,7 +36,7 @@ class PdfExporterFacade:
         if self._generate_pdf_puppeteer(html_path, pdf_path, footer_text):
             return True, "Puppeteer"
             
-        print("[yellow]Puppeteer no disponible o falló, probando WeasyPrint…[/yellow]")
+        logger.warning("PDF", "Puppeteer no disponible o falló, probando WeasyPrint como fallback…")
         
         # Fallback a WeasyPrint
         if self._generate_pdf_weasyprint(html_path, pdf_path):
@@ -55,11 +56,11 @@ class PdfExporterFacade:
                 shell=_IS_WINDOWS  # En Windows, node puede necesitar shell=True
             )
             if result.returncode != 0:
-                print(f"Puppeteer error:\\n{result.stderr}")
+                logger.error("Puppeteer", f"Error de ejecución: {result.stderr.strip()}")
                 return False
             return True
         except Exception as e:
-            print(f"Error ejecutando Node: {e}")
+            logger.error("Puppeteer", f"Error al ejecutar Node.js: {e}")
             return False
 
     def _generate_pdf_weasyprint(self, html_path: str, pdf_path: str) -> bool:
@@ -68,10 +69,10 @@ class PdfExporterFacade:
             import logging
             
             # Configurar el logger de WeasyPrint para ver errores de fuentes y dependencias
-            logger = logging.getLogger('weasyprint')
-            logger.handlers = [] # Limpiar handlers previos
-            logger.addHandler(logging.StreamHandler())
-            logger.setLevel(logging.WARNING) # Mostrar advertencias sobre fuentes fallidas
+            wp_logger = logging.getLogger('weasyprint')
+            wp_logger.handlers = [] # Limpiar handlers previos
+            wp_logger.addHandler(logging.StreamHandler())
+            wp_logger.setLevel(logging.WARNING) # Mostrar advertencias sobre fuentes fallidas
             
             # Usar el directorio de trabajo actual como base_url para que encuentre las imágenes relativas si alguna no se convirtió a URI absoluta.
             # Path.as_uri() genera URIs correctas en Windows (file:///C:/...) y Unix
@@ -81,5 +82,5 @@ class PdfExporterFacade:
         except ImportError:
             return False
         except Exception as e:
-            print(f"WeasyPrint error: {e}")
+            logger.error("WeasyPrint", f"Error en WeasyPrint: {e}")
             return False
