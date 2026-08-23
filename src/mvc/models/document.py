@@ -447,7 +447,9 @@ class DocumentModel:
         
         fonts_head = """<link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Outfit:wght@500;600;700;800&family=Playfair+Display:wght@700;800&family=Poppins:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">"""
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Poppins:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400;500;700;800&f[]=satoshi@400;500;700&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/geist@1/dist/fonts/geist-sans/style.css" rel="stylesheet">"""
 
         import json as _json
         mermaid_config = self._get_mermaid_theme_config(theme_key)
@@ -782,7 +784,7 @@ class DocumentModel:
         .cover-style-academica_clasica .cover-header { justify-content: center; width: 100%; margin-bottom: 25mm; display:flex; flex-direction: column; align-items: center;}
         .cover-style-academica_clasica .cover-header .cover-logo { position: static !important; max-width: 45mm !important; margin-bottom: 10mm; display: block; }
         .cover-style-academica_clasica .cover-content { margin-top: auto; margin-bottom: auto; }
-        .cover-style-academica_clasica .cover-content h1 { font-family: 'Literata', 'Times New Roman', serif; font-size: 36pt; border: none !important; font-weight: 700; color: #111827 !important;}
+        .cover-style-academica_clasica .cover-content h1 { font-family: 'Inter', sans-serif; font-size: 36pt; border: none !important; font-weight: 700; color: #111827 !important;}
         .cover-style-academica_clasica .cover-meta { display: flex; flex-direction: column; align-items: center; gap: 6mm; border-top: 1px solid #d1d5db; padding-top: 10mm; width: 80%; margin-top: auto; }
         .cover-style-academica_clasica .cover-meta-row { border: none !important; display: flex; flex-direction: column; align-items: center; }
 

@@ -153,9 +153,13 @@ class AppController(QObject):
             return
         self._is_shutting_down = True
         logger.info("App", "Cerrando aplicación y liberando recursos...")
+        if hasattr(self, 'autosave_timer') and self.autosave_timer.isActive():
+            self.autosave_timer.stop()
+        if hasattr(self, 'debounce_timer') and self.debounce_timer.isActive():
+            self.debounce_timer.stop()
         if hasattr(self, 'thread') and self.thread.isRunning():
             self.thread.quit()
-            self.thread.wait(1000)
+            self.thread.wait(2000)
 
     def run(self):
         self.view.show()
