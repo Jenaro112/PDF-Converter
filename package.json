@@ -1,8 +1,53 @@
 {
-  "dependencies": {
-    "puppeteer": "^25.3.0"
+  "name": "pdf-converter-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
   },
-  "allowScripts": {
-    "puppeteer@25.3.0": true
+  "dependencies": {
+    "@codemirror/commands": "^6.11.0",
+    "@codemirror/lang-markdown": "^6.5.2",
+    "@codemirror/language": "^6.12.4",
+    "@codemirror/search": "^6.7.2",
+    "@codemirror/state": "^6.7.2",
+    "@codemirror/view": "^6.43.10",
+    "@lezer/highlight": "^1.2.3",
+    "codemirror": "^6.0.2",
+    "framer-motion": "^13.2.0",
+    "gray-matter": "^4.0.3",
+    "katex": "^0.18.5",
+    "lucide-react": "^1.39.0",
+    "mermaid": "^11.17.2",
+    "next": "16.3.4",
+    "puppeteer": "^25.9.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-resizable-panels": "^4.12.3",
+    "rehype-katex": "^7.0.1",
+    "rehype-react": "^8.0.0",
+    "remark-breaks": "^4.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.1.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/katex": "^0.16.8",
+    "@types/node": "^20",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
