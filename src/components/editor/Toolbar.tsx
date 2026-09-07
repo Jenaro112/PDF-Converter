@@ -43,6 +43,7 @@ export function Toolbar() {
     toggleSidebar,
     toggleSettings,
     documentText,
+    fileName,
     activeTheme,
     coverConfig,
     isDirty,
@@ -59,7 +60,7 @@ export function Toolbar() {
       await fetch('/api/autosave', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentText, activeTheme, coverConfig }),
+        body: JSON.stringify({ fileName, documentText, activeTheme, coverConfig }),
       });
       markSaved();
       setSavedFlash(true);

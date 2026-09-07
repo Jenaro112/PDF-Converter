@@ -17,8 +17,15 @@ export function Paginator({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!measureRef.current) return;
     
+    const renderHeader = coverConfig?.showHeader !== false && (sigla || docTitle);
+    const renderFooter = coverConfig?.showFooter !== false;
+    
+    const topMargin = renderHeader ? 30 : 20;
+    const bottomMargin = renderFooter ? 30 : 20;
+    const availableHeight = 297 - topMargin - bottomMargin;
+
     const ruler = document.createElement('div');
-    ruler.style.height = '247mm'; // 297 - 20 top - 20 bottom - ~10mm for header
+    ruler.style.height = `${availableHeight}mm`;
     ruler.style.position = 'absolute';
     ruler.style.visibility = 'hidden';
     document.body.appendChild(ruler);
@@ -82,8 +89,10 @@ export function Paginator({ children }: { children: React.ReactNode }) {
 
       {/* Páginas A4 */}
       {pages.map((pageHtml, index) => {
-        const pageNumber = index + 1 + (hasCover ? 1 : 0);
-        const showHeader = sigla || docTitle;
+        const pageNumber = index + 1; // Content pages start at 1
+        const totalContentPages = pages.length;
+        const renderHeader = coverConfig?.showHeader !== false && (sigla || docTitle);
+        const renderFooter = coverConfig?.showFooter !== false;
 
         return (
           <div
@@ -99,7 +108,7 @@ export function Paginator({ children }: { children: React.ReactNode }) {
             }}
           >
             {/* Header */}
-            {showHeader && (
+            {renderHeader && (
               <div
                 style={{
                   position: 'absolute',
@@ -108,7 +117,56 @@ export function Paginator({ children }: { children: React.ReactNode }) {
                   right: '20mm',
                 }}
               >
-                {/* Línea */}
+                {/* Texto */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  fontSize: '9pt',
+                  color: '#333',
+                  fontFamily: 'Arial, Helvetica, sans-serif',
+                  marginBottom: '3mm'
+                }}>
+                  <div>
+                    {sigla && <strong>{sigla}</strong>}
+                    {sigla && docTitle && ' - '}
+                    {docTitle}
+                  </div>
+                </div>
+                {/* Línea abajo del texto */}
+                <div style={{ height: '1px', backgroundColor: '#c0c0c0' }} />
+              </div>
+            )}
+
+            {/* Contenido */}
+            <div
+              className="preview-content"
+              style={{
+                position: 'absolute',
+                top:    renderHeader ? '30mm' : '20mm',
+                left:   '20mm',
+                right:  '20mm',
+                bottom: renderFooter ? '30mm' : '20mm',
+                overflow: 'hidden',
+                fontFamily: "'Inter', sans-serif",
+                color: '#2d2d2d',
+                lineHeight: '1.6',
+                fontSize: '11pt',
+              }}
+              dangerouslySetInnerHTML={{ __html: pageHtml }}
+            />
+
+            {/* Footer */}
+            {renderFooter && (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '14mm',
+                  left: '20mm',
+                  right: '20mm',
+                }}
+              >
+                {/* Línea arriba del texto */}
                 <div style={{ height: '1px', backgroundColor: '#c0c0c0', marginBottom: '3mm' }} />
                 {/* Texto */}
                 <div style={{
@@ -125,29 +183,11 @@ export function Paginator({ children }: { children: React.ReactNode }) {
                     {docTitle}
                   </div>
                   <div>
-                    <strong>Página {pageNumber} de {totalPages}</strong>
+                    <strong>Página {pageNumber} de {totalContentPages}</strong>
                   </div>
                 </div>
               </div>
             )}
-
-            {/* Contenido */}
-            <div
-              className="preview-content"
-              style={{
-                position: 'absolute',
-                top:    showHeader ? '30mm' : '20mm',
-                left:   '20mm',
-                right:  '20mm',
-                bottom: '15mm',
-                overflow: 'hidden',
-                fontFamily: "'Inter', sans-serif",
-                color: '#2d2d2d',
-                lineHeight: '1.6',
-                fontSize: '11pt',
-              }}
-              dangerouslySetInnerHTML={{ __html: pageHtml }}
-            />
           </div>
         );
       })}

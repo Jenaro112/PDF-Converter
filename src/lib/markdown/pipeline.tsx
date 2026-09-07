@@ -9,6 +9,7 @@ import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import remarkRehype from 'remark-rehype';
 import rehypeKatex from 'rehype-katex';
+import rehypeHighlight from 'rehype-highlight';
 import rehypeReact from 'rehype-react';
 import * as prod from 'react/jsx-runtime';
 import { remarkPastel } from './plugins/remark-pastel';
@@ -29,6 +30,7 @@ export function useMarkdownProcessor(text: string) {
         .use(remarkPastel) 
         .use(remarkRehype, { allowDangerousHtml: true })
         .use(rehypeKatex) 
+        .use(rehypeHighlight, { ignoreMissing: true })
         .use(rehypeReact, { 
           ...production,
           components: {
@@ -94,6 +96,12 @@ export function useMarkdownProcessor(text: string) {
               }
               
               return <pre {...props} />;
+            },
+            img: (props: any) => {
+              if (!props.src || props.src === '') {
+                return <span className="text-gray-400 italic text-sm">{props.alt || '(Cargando imagen...)'}</span>;
+              }
+              return <img {...props} />;
             }
           }
         } as any);

@@ -17,7 +17,7 @@ export const pasteImagePlugin = EditorView.domEventHandlers({
     event.preventDefault(); // Prevenir el pegado normal
 
     // 1. Insertar texto temporal en la posición del cursor
-    const placeholder = `![Subiendo imagen...]()`;
+    const placeholder = `*(Subiendo imagen...)*`;
     const pos = view.state.selection.main.head;
     
     view.dispatch({

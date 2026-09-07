@@ -61,6 +61,8 @@ export function CoverSettingsDrawer() {
     profesores:  [''],
     sigla:       'TI',
     fecha:       today,
+    showHeader:  true,
+    showFooter:  true,
   };
 
   const up = (field: keyof typeof config, value: unknown) =>
@@ -110,6 +112,35 @@ export function CoverSettingsDrawer() {
             >
               <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${config.showCover ? 'translate-x-6' : 'translate-x-0.5'}`} />
             </button>
+          </div>
+
+          <div className="space-y-4">
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Opciones de Página</label>
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+              <div>
+                <p className="font-semibold text-gray-800 text-sm">Encabezado</p>
+                <p className="text-xs text-gray-500 mt-0.5">Muestra la sigla en la parte superior.</p>
+              </div>
+              <button
+                onClick={() => up('showHeader', config.showHeader === false ? true : false)}
+                className={`w-12 h-6 rounded-full transition-colors relative ${config.showHeader !== false ? 'bg-[var(--accent)]' : 'bg-gray-300'}`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${config.showHeader !== false ? 'translate-x-6' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+              <div>
+                <p className="font-semibold text-gray-800 text-sm">Pie de Página</p>
+                <p className="text-xs text-gray-500 mt-0.5">Muestra el número de página en la parte inferior.</p>
+              </div>
+              <button
+                onClick={() => up('showFooter', config.showFooter === false ? true : false)}
+                className={`w-12 h-6 rounded-full transition-colors relative ${config.showFooter !== false ? 'bg-[var(--accent)]' : 'bg-gray-300'}`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${config.showFooter !== false ? 'translate-x-6' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
           </div>
 
           <div className={`space-y-8 transition-opacity duration-300 ${!config.showCover ? 'opacity-40 pointer-events-none' : ''}`}>

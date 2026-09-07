@@ -3,13 +3,14 @@
 import React from 'react';
 import { useEditorStore } from '@/store/editor-store';
 import { useMarkdownProcessor } from '@/lib/markdown/pipeline';
+import { generateRootCSS } from '@/lib/themes/document-themes';
 import 'katex/dist/katex.min.css';
 import { Paginator } from './Paginator';
 import { ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function Preview() {
-  const { documentText, zoomLevel, setZoom, isPreviewExpanded, togglePreviewExpanded } = useEditorStore();
+  const { documentText, zoomLevel, setZoom, isPreviewExpanded, togglePreviewExpanded, activeTheme } = useEditorStore();
   const previewRef = React.useRef<HTMLDivElement>(null);
   
   // hook que convierte el texto en componentes React
@@ -32,6 +33,7 @@ export function Preview() {
 
   return (
     <>
+      <style dangerouslySetInnerHTML={{ __html: generateRootCSS(activeTheme) }} />
       {/* Background Overlay cuando está expandido */}
       <AnimatePresence>
         {isPreviewExpanded && (

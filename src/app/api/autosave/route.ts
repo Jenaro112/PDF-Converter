@@ -5,7 +5,7 @@ import matter from 'gray-matter';
 
 export async function POST(req: Request) {
   try {
-    const { documentText, coverConfig, activeTheme } = await req.json();
+    const { fileName, documentText, coverConfig, activeTheme } = await req.json();
     
     // Carpeta docs en la raíz del proyecto
     const docsDir = path.join(process.cwd(), 'docs');
@@ -13,8 +13,9 @@ export async function POST(req: Request) {
       fs.mkdirSync(docsDir, { recursive: true });
     }
     
-    // Archivo de sesión actual
-    const filePath = path.join(docsDir, 'session.md');
+    // Archivo de sesión actual o archivo específico
+    const safeName = fileName ? fileName.replace(/[^a-zA-Z0-9._\- ]/g, '') : 'session.md';
+    const filePath = path.join(docsDir, safeName.endsWith('.md') ? safeName : `${safeName}.md`);
     
     // Usamos gray-matter para guardar la configuración como metadatos YAML
     const fileContent = matter.stringify(documentText, {

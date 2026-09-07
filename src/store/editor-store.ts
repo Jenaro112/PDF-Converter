@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { ThemeKey } from '@/lib/themes/document-themes';
 
 export interface CoverData {
@@ -13,6 +14,8 @@ export interface CoverData {
   sigla?: string;
   /** Fecha que se muestra en la portada (ej: "13/06/2026") */
   fecha?: string;
+  showHeader?: boolean;
+  showFooter?: boolean;
 }
 
 export interface PageConfigData {
@@ -81,60 +84,75 @@ interface EditorState {
   setEditorScrollPercent: (percent: number) => void;
 }
 
-export const useEditorStore = create<EditorState>((set) => ({
-  documentText: '# Bienvenido a PDF Converter\n\nEste es tu nuevo documento.',
-  fileName: null,
-  isDirty: false,
-  contentVersion: 0,
-
-  isSidebarOpen: false,
-  isPreviewExpanded: false,
-  isSettingsOpen: false,
-
-  activeTheme: 'minimal',
-
-  coverConfig: null,
-  pageConfig: null,
-
-  zoomLevel: 100,
-  renderedHTML: '',
-
-  cursorLine: 1,
-  cursorCol: 1,
-  wordCount: 5,
-
-  setText: (text) =>
-    set({ documentText: text, isDirty: true, wordCount: text.trim() ? text.trim().split(/\s+/).length : 0 }),
-
-  loadContent: (text, name) =>
-    set((state) => ({
-      documentText: text,
-      fileName: name,
+export const useEditorStore = create<EditorState>()(
+  persist(
+    (set) => ({
+      documentText: '# Bienvenido a PDF Converter\n\nEste es tu nuevo documento.',
+      fileName: null,
       isDirty: false,
-      contentVersion: state.contentVersion + 1,
-      wordCount: text.trim() ? text.trim().split(/\s+/).length : 0,
-    })),
+      contentVersion: 0,
 
-  setFileName: (name) => set({ fileName: name }),
-  toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
-  togglePreviewExpanded: () => set((state) => ({ isPreviewExpanded: !state.isPreviewExpanded })),
-  toggleSettings: () => set((state) => ({ isSettingsOpen: !state.isSettingsOpen })),
-  setTheme: (theme) => set({ activeTheme: theme }),
-  setCover: (config) => set({ coverConfig: config }),
-  setPageConfig: (config) => set({ pageConfig: config }),
-  setZoom: (level) => set({ zoomLevel: Math.max(50, Math.min(200, level)) }),
-  setRenderedHTML: (html) => set({ renderedHTML: html }),
-  setCursor: (line, col) => set({ cursorLine: line, cursorCol: col }),
-  setWordCount: (count) => set({ wordCount: count }),
-  markSaved: () => set({ isDirty: false }),
-  markDirty: () => set({ isDirty: true }),
+      isSidebarOpen: false,
+      isPreviewExpanded: false,
+      isSettingsOpen: false,
 
-  formatAction: null,
-  setFormatAction: (action) => set({ formatAction: action }),
+      activeTheme: 'minimal',
 
-  snippetToInsert: null,
-  setSnippetToInsert: (snippet) => set({ snippetToInsert: snippet }),
+      coverConfig: null,
+      pageConfig: null,
 
-  editorScrollPercent: 0,
-  setEditorScrollPercent: (percent) => set({ editorScrollPercent: percent }),
-}));
+      zoomLevel: 100,
+      renderedHTML: '',
+
+      cursorLine: 1,
+      cursorCol: 1,
+      wordCount: 5,
+
+      setText: (text) =>
+        set({ documentText: text, isDirty: true, wordCount: text.trim() ? text.trim().split(/\s+/).length : 0 }),
+
+      loadContent: (text, name) =>
+        set((state) => ({
+          documentText: text,
+          fileName: name,
+          isDirty: false,
+          contentVersion: state.contentVersion + 1,
+          wordCount: text.trim() ? text.trim().split(/\s+/).length : 0,
+        })),
+
+      setFileName: (name) => set({ fileName: name }),
+      toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+      togglePreviewExpanded: () => set((state) => ({ isPreviewExpanded: !state.isPreviewExpanded })),
+      toggleSettings: () => set((state) => ({ isSettingsOpen: !state.isSettingsOpen })),
+      setTheme: (theme) => set({ activeTheme: theme }),
+      setCover: (config) => set({ coverConfig: config }),
+      setPageConfig: (config) => set({ pageConfig: config }),
+      setZoom: (level) => set({ zoomLevel: Math.max(50, Math.min(200, level)) }),
+      setRenderedHTML: (html) => set({ renderedHTML: html }),
+      setCursor: (line, col) => set({ cursorLine: line, cursorCol: col }),
+      setWordCount: (count) => set({ wordCount: count }),
+      markSaved: () => set({ isDirty: false }),
+      markDirty: () => set({ isDirty: true }),
+
+      formatAction: null,
+      setFormatAction: (action) => set({ formatAction: action }),
+
+      snippetToInsert: null,
+      setSnippetToInsert: (snippet) => set({ snippetToInsert: snippet }),
+
+      editorScrollPercent: 0,
+      setEditorScrollPercent: (percent) => set({ editorScrollPercent: percent }),
+    }),
+    {
+      name: 'pdf-converter-storage', // key in localStorage
+      partialize: (state) => ({
+        documentText: state.documentText,
+        fileName: state.fileName,
+        activeTheme: state.activeTheme,
+        coverConfig: state.coverConfig,
+        pageConfig: state.pageConfig,
+        contentVersion: state.contentVersion, // ensures editor updates text
+      }),
+    }
+  )
+);
