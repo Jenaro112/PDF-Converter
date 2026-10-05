@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import '@catppuccin/highlightjs/css/catppuccin-mocha.css';
 
 export const metadata: Metadata = {
   title: 'PDF Converter',
   description: 'Editor Markdown & Exportador PDF',
 };
+
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 export default function RootLayout({
   children,
@@ -21,9 +24,12 @@ export default function RootLayout({
           rel="stylesheet"
         />
         <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
       </head>
       <body suppressHydrationWarning>
-        {children}
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

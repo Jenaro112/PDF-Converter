@@ -1,6 +1,20 @@
 ---
+coverConfig:
+  showCover: true
+  title: Trabajo Integrador Final
+  subtitle: Análisis de Sistemas
+  materia: Taller de Integración
+  coverStyle: academic_elegant
+  showLogo: true
+  integrantes:
+    - ''
+  profesores:
+    - ''
+  sigla: TI
+  fecha: 15/09/2026
+  showHeader: true
+  showFooter: true
 activeTheme: minimal
-coverConfig: null
 ---
 # Documento de Prueba — PDF Converter
 

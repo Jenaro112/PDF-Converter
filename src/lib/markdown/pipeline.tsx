@@ -78,8 +78,8 @@ export function useMarkdownProcessor(text: string) {
               // Buscamos cualquier hijo que tenga la clase 'language-mermaid'
               const mermaidChild = childrenArray.find(
                 (child) => React.isValidElement(child) && 
-                           typeof child.props.className === 'string' && 
-                           child.props.className.includes('language-mermaid')
+                           typeof (child as React.ReactElement<any>).props.className === 'string' && 
+                           (child as React.ReactElement<any>).props.className.includes('language-mermaid')
               ) as React.ReactElement<any> | undefined;
 
               if (mermaidChild) {

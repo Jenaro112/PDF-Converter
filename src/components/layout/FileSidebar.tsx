@@ -5,6 +5,7 @@ import { useEditorStore } from '@/store/editor-store';
 import {
   File, FilePlus, Clock, Check, X, Pencil, Loader2, FolderOpen,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DocFile {
   name: string;
@@ -13,19 +14,17 @@ interface DocFile {
 }
 
 export function FileSidebar() {
-  const { isSidebarOpen, toggleSidebar, fileName, setText, setFileName, markSaved, loadContent, documentText, activeTheme, coverConfig } = useEditorStore();
+  const { isSidebarOpen, fileName, setText, setFileName, loadContent, activeTheme, coverConfig } = useEditorStore();
 
   const [docs, setDocs]           = useState<DocFile[]>([]);
   const [loading, setLoading]     = useState(false);
-  const [renamingFile, setRenamingFile] = useState<string | null>(null); // current name being renamed
+  const [renamingFile, setRenamingFile] = useState<string | null>(null);
   const [renameValue, setRenameValue]   = useState('');
   const [creatingNew, setCreatingNew]   = useState(false);
   const [newFileName, setNewFileName]   = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
   const newInputRef    = useRef<HTMLInputElement>(null);
-  const sidebarRef     = useRef<HTMLDivElement>(null);
 
-  // Fetch files whenever sidebar opens
   const fetchDocs = useCallback(async () => {
     setLoading(true);
     try {
@@ -43,7 +42,12 @@ export function FileSidebar() {
     if (isSidebarOpen) fetchDocs();
   }, [isSidebarOpen, fetchDocs]);
 
-  // Focus rename input when it opens
+  useEffect(() => {
+    if (!isSidebarOpen) return;
+    const interval = setInterval(fetchDocs, 3000);
+    return () => clearInterval(interval);
+  }, [isSidebarOpen, fetchDocs]);
+
   useEffect(() => {
     if (renamingFile && renameInputRef.current) renameInputRef.current.select();
   }, [renamingFile]);
@@ -52,43 +56,29 @@ export function FileSidebar() {
     if (creatingNew && newInputRef.current) newInputRef.current.select();
   }, [creatingNew]);
 
-  // Close on Escape or outside click
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setRenamingFile(null);
         setCreatingNew(false);
-        if (isSidebarOpen) toggleSidebar();
-      }
-    };
-    const handleClick = (e: MouseEvent) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
-        if (isSidebarOpen) toggleSidebar();
       }
     };
     document.addEventListener('keydown', handleKey);
-    document.addEventListener('mousedown', handleClick);
-    return () => {
-      document.removeEventListener('keydown', handleKey);
-      document.removeEventListener('mousedown', handleClick);
-    };
-  }, [isSidebarOpen, toggleSidebar]);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, []);
 
-  // Load a file into the editor
   const loadDoc = async (name: string) => {
     try {
       const res  = await fetch(`/api/docs/load?file=${encodeURIComponent(name)}`);
       const data = await res.json();
       if (data.content !== undefined) {
         loadContent(data.content, name);
-        toggleSidebar();
       }
     } catch {
       alert('No se pudo cargar el archivo.');
     }
   };
 
-  // Rename an existing file
   const commitRename = async (oldName: string) => {
     const trimmed = renameValue.trim();
     if (!trimmed || trimmed === oldName.replace(/\.md$/, '')) {
@@ -113,7 +103,6 @@ export function FileSidebar() {
     }
   };
 
-  // Create a new blank file via dedicated API
   const commitNewFile = async () => {
     const trimmed = newFileName.trim();
     if (!trimmed) { setCreatingNew(false); return; }
@@ -150,106 +139,72 @@ export function FileSidebar() {
   };
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className={`fixed inset-0 z-30 transition-opacity duration-300 ${
-          isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        style={{ background: 'rgba(30,20,15,0.18)', backdropFilter: 'blur(1px)' }}
-      />
-
-      {/* Sidebar panel */}
-      <div
-        ref={sidebarRef}
-        className={`fixed left-0 top-0 bottom-0 z-40 flex flex-col transition-transform duration-300 ease-in-out ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        style={{
-          width: '280px',
-          background: 'rgba(253, 251, 248, 0.72)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          borderRight: '1px solid rgba(230, 226, 221, 0.6)',
-          boxShadow: '4px 0 32px rgba(80,50,30,0.10)',
-        }}
-      >
-        {/* Header */}
-        <div
-          className="flex items-center justify-between px-5 py-4 shrink-0"
-          style={{ borderBottom: '1px solid rgba(230,226,221,0.6)' }}
-        >
-          <div className="flex items-center gap-2">
-            <FolderOpen size={16} className="text-[var(--accent)]" />
-            <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
-              docs /
-            </span>
-          </div>
-          <button
-            onClick={toggleSidebar}
-            className="p-1 rounded hover:bg-[var(--bg-preview)] text-[var(--text-muted)] transition-colors"
-          >
-            <X size={15} />
-          </button>
+    <div className="h-full flex flex-col bg-[var(--bg-sidebar)] border-r border-[var(--border)] overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-3 shrink-0 border-b border-[var(--border)]">
+        <div className="flex items-center gap-2">
+          <FolderOpen size={16} className="text-[var(--accent)]" />
+          <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
+            Explorador
+          </span>
         </div>
+      </div>
 
-        {/* New file button */}
-        <div className="px-4 pt-3 pb-2 shrink-0">
-          {creatingNew ? (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-preview)] border border-[var(--accent)]/40">
-              <File size={14} className="text-[var(--accent)] shrink-0" />
-              <input
-                ref={newInputRef}
-                value={newFileName}
-                onChange={(e) => setNewFileName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') commitNewFile();
-                  if (e.key === 'Escape') { setCreatingNew(false); setNewFileName(''); }
-                }}
-                placeholder="nombre-archivo"
-                className="flex-1 bg-transparent text-sm text-[var(--text-main)] outline-none placeholder:text-[var(--text-muted)]"
-                autoFocus
-              />
-              <button onClick={commitNewFile} className="text-[var(--accent)] hover:opacity-70">
-                <Check size={14} />
-              </button>
-              <button onClick={() => { setCreatingNew(false); setNewFileName(''); }} className="text-[var(--text-muted)] hover:opacity-70">
-                <X size={14} />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => { setCreatingNew(true); setNewFileName(''); }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--bg-preview)] transition-colors"
-            >
-              <FilePlus size={15} />
-              Nuevo archivo
+      {/* New file button */}
+      <div className="px-4 pt-3 pb-2 shrink-0">
+        {creatingNew ? (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--accent)]/40 shadow-sm">
+            <File size={14} className="text-[var(--accent)] shrink-0" />
+            <input
+              ref={newInputRef}
+              value={newFileName}
+              onChange={(e) => setNewFileName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitNewFile();
+                if (e.key === 'Escape') { setCreatingNew(false); setNewFileName(''); }
+              }}
+              placeholder="nombre-archivo"
+              className="flex-1 bg-transparent text-sm text-[var(--text-main)] outline-none placeholder:text-[var(--text-muted)]"
+              autoFocus
+            />
+            <button onClick={commitNewFile} className="text-[var(--accent)] hover:opacity-70">
+              <Check size={14} />
             </button>
-          )}
-        </div>
+            <button onClick={() => { setCreatingNew(false); setNewFileName(''); }} className="text-[var(--text-muted)] hover:opacity-70">
+              <X size={14} />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => { setCreatingNew(true); setNewFileName(''); }}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-surface)] hover:shadow-sm border border-transparent hover:border-[var(--border)] transition-all"
+          >
+            <FilePlus size={15} />
+            Nuevo archivo
+          </button>
+        )}
+      </div>
 
-        {/* Divider */}
-        <div style={{ height: '1px', background: 'rgba(230,226,221,0.5)', margin: '0 16px' }} />
-
-        {/* File list */}
-        <div className="flex-1 overflow-y-auto py-2">
-          {loading ? (
-            <div className="flex items-center justify-center gap-2 py-10 text-[var(--text-muted)]">
-              <Loader2 size={16} className="animate-spin" />
-              <span className="text-sm">Cargando...</span>
-            </div>
-          ) : docs.length === 0 ? (
-            <div className="px-5 py-10 text-center text-[var(--text-muted)] text-sm">
-              No hay archivos en docs/
-            </div>
-          ) : (
-            docs.map((doc) => (
+      {/* File list */}
+      <div className="flex-1 overflow-y-auto py-2">
+        {loading ? (
+          <div className="flex items-center justify-center gap-2 py-10 text-[var(--text-muted)]">
+            <Loader2 size={16} className="animate-spin" />
+            <span className="text-sm">Cargando...</span>
+          </div>
+        ) : docs.length === 0 ? (
+          <div className="px-5 py-10 text-center text-[var(--text-muted)] text-sm">
+            No hay archivos.
+          </div>
+        ) : (
+          <div className="px-2 space-y-1">
+            {docs.map((doc) => (
               <div
                 key={doc.name}
-                className={`group flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg transition-colors cursor-pointer ${
+                className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors cursor-pointer border ${
                   fileName === doc.name
-                    ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
-                    : 'hover:bg-[var(--bg-preview)] text-[var(--text-main)]'
+                    ? 'bg-[var(--bg-surface)] border-[var(--border)] shadow-sm'
+                    : 'border-transparent hover:bg-[var(--bg-surface)] hover:border-[var(--border)]/50'
                 }`}
               >
                 {renamingFile === doc.name ? (
@@ -290,9 +245,10 @@ export function FileSidebar() {
                         className={`mt-0.5 shrink-0 ${fileName === doc.name ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'}`}
                       />
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium truncate">{doc.name}</div>
-                        <div className="flex items-center gap-1 text-xs text-[var(--text-muted)] mt-0.5">
-                          <Clock size={10} />
+                        <div className={`text-sm font-medium truncate ${fileName === doc.name ? 'text-[var(--text-main)]' : 'text-[var(--text-main)]'}`}>
+                          {doc.name}
+                        </div>
+                        <div className="flex items-center gap-1 text-[11px] text-[var(--text-muted)] mt-0.5">
                           <span>{formatDate(doc.modified)}</span>
                         </div>
                       </div>
@@ -305,7 +261,7 @@ export function FileSidebar() {
                         setRenamingFile(doc.name);
                         setRenameValue(doc.name.replace(/\.md$/, ''));
                       }}
-                      className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10"
+                      className="shrink-0 p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10"
                       title="Renombrar"
                     >
                       <Pencil size={12} />
@@ -313,20 +269,10 @@ export function FileSidebar() {
                   </>
                 )}
               </div>
-            ))
-          )}
-        </div>
-
-        {/* Footer hint */}
-        <div
-          className="px-5 py-3 shrink-0"
-          style={{ borderTop: '1px solid rgba(230,226,221,0.5)' }}
-        >
-          <p className="text-xs text-[var(--text-muted)] text-center">
-            Ctrl+S para guardar · Esc para cerrar
-          </p>
-        </div>
+            ))}
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }

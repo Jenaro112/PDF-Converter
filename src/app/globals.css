@@ -1,18 +1,50 @@
 @import "tailwindcss";
-@import "@catppuccin/highlightjs/css/catppuccin-mocha.css";
 
-/* ===== Warm Editorial Theme ===== */
+/* ===== Soft Modern Light Theme ===== */
 :root {
-  --bg-base: #fefcf9;
-  --bg-sidebar: #faf8f5;
-  --bg-preview: #eae6e1;
-  --text-main: #4a4543;
-  --text-muted: #8c827a;
+  --bg-base: #fbfaf9;
+  --bg-sidebar: #f5f4f2;
+  --bg-surface: #ffffff;
+  --bg-preview: #ffffff;
+  --text-main: #292524;
+  --text-muted: #78716c;
   --accent: #c2572a;
-  --accent-hover: #b04e25;
-  --secondary: #5a7a62;
-  --border: #e6e2dd;
-  --toolbar-bg: #fdfbf8;
+  --accent-hover: #a34721;
+  --secondary: #57534e;
+  --border: #e7e5e4;
+  --toolbar-bg: rgba(255, 255, 255, 0.85);
+}
+
+.dark {
+  --bg-base: #0f0f11;
+  --bg-sidebar: #151518;
+  --bg-surface: #1b1b1f;
+  --bg-preview: #09090b;
+  --text-main: #e4e4e7;
+  --text-muted: #a1a1aa;
+  --accent: #e47746;
+  --accent-hover: #ff915f;
+  --secondary: #71717a;
+  --border: #27272a;
+  --toolbar-bg: rgba(21, 21, 24, 0.85);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+.dark::view-transition-old(root) {
+  z-index: 9999;
+}
+.dark::view-transition-new(root) {
+  z-index: 1;
 }
 
 html,
@@ -215,4 +247,24 @@ body {
   color: #9ca3af;
   font-size: 11px;
   font-weight: bold;
+}
+
+/* KaTeX: prevent tall symbols (roots, big fractions) from being clipped */
+.preview-content .katex-display {
+  overflow: visible;
+  margin: 1em 0;
+}
+
+.preview-content .katex-display > .katex {
+  overflow: visible;
+}
+
+/* Inline fractions (dfrac) need extra line-height so they don't overlap adjacent lines */
+.preview-content .katex {
+  overflow: visible;
+}
+
+.preview-content li .katex,
+.preview-content p .katex {
+  line-height: 2;
 }

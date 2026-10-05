@@ -5,6 +5,7 @@ export interface ExportPayload {
   documentText: string;
   activeTheme: ThemeKey;
   coverConfig: CoverData | null;
+  fileName?: string | null;
 }
 
 export class ExportService {
@@ -28,7 +29,10 @@ export class ExportService {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'documento-pdf-converter.pdf';
+      
+      const safeName = payload.fileName ? payload.fileName.replace(/\.md$/, '') : 'documento';
+      a.download = `${safeName}.pdf`;
+      
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

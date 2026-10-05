@@ -32,29 +32,27 @@ export function BarraAzulCover({ config }: { config: CoverData }) {
           </p>
         </div>
         
-        <div className="mt-auto grid grid-cols-2 gap-12 w-full border-t border-gray-100 pt-10">
-            <div>
-              <span className="block text-[11px] font-bold uppercase tracking-[0.25em] text-gray-400 mb-4">Integrantes</span>
-              <div className="flex flex-col gap-1.5">
-                {config.integrantes.filter(Boolean).length > 0 ? (
-                  config.integrantes.filter(Boolean).map(i => <span key={i} className="text-[16px] text-gray-800 font-medium">{i}</span>)
-                ) : (
-                  <span className="text-[14px] text-gray-300 italic">Sin especificar</span>
-                )}
-              </div>
-            </div>
+        {(config.integrantes.filter(Boolean).length > 0 || config.profesores.filter(Boolean).length > 0) && (
+          <div className="mt-auto grid grid-cols-2 gap-12 w-full border-t border-gray-100 pt-10">
+              {config.integrantes.filter(Boolean).length > 0 && (
+                <div>
+                  <span className="block text-[11px] font-bold uppercase tracking-[0.25em] text-gray-400 mb-4">Integrantes</span>
+                  <div className="flex flex-col gap-1.5">
+                    {config.integrantes.filter(Boolean).map(i => <span key={i} className="text-[16px] text-gray-800 font-medium">{i}</span>)}
+                  </div>
+                </div>
+              )}
 
-            <div>
-              <span className="block text-[11px] font-bold uppercase tracking-[0.25em] text-gray-400 mb-4">Docentes</span>
-              <div className="flex flex-col gap-1.5">
-                {config.profesores.filter(Boolean).length > 0 ? (
-                  config.profesores.filter(Boolean).map(p => <span key={p} className="text-[16px] text-gray-800 font-medium">{p}</span>)
-                ) : (
-                  <span className="text-[14px] text-gray-300 italic">Sin especificar</span>
-                )}
-              </div>
-            </div>
-        </div>
+              {config.profesores.filter(Boolean).length > 0 && (
+                <div>
+                  <span className="block text-[11px] font-bold uppercase tracking-[0.25em] text-gray-400 mb-4">Docentes</span>
+                  <div className="flex flex-col gap-1.5">
+                    {config.profesores.filter(Boolean).map(p => <span key={p} className="text-[16px] text-gray-800 font-medium">{p}</span>)}
+                  </div>
+                </div>
+              )}
+          </div>
+        )}
       </div>
     </div>
   );

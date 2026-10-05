@@ -7,7 +7,8 @@ export interface CoverData {
   title: string;
   subtitle: string;
   materia: string;
-  coverStyle: 'barra_azul' | 'blanca_simple' | 'fcyt_uader';
+  coverStyle: 'barra_azul' | 'blanca_simple' | 'fcyt_uader' | 'academic_elegant' | 'modern_minimal' | 'geometric_corporate';
+  showLogo?: boolean;
   integrantes: string[];
   profesores: string[];
   /** Abreviatura del trabajo — aparece en el encabezado (ej: "TI") */
@@ -58,7 +59,11 @@ interface EditorState {
   cursorCol: number;
   wordCount: number;
 
+  viewMode: 'dashboard' | 'editor';
+  setViewMode: (mode: 'dashboard' | 'editor') => void;
+
   setText: (text: string) => void;
+  loadBlankContent: (name: string) => void;
   loadContent: (text: string, name: string | null) => void;
   setFileName: (name: string | null) => void;
   toggleSidebar: () => void;
@@ -98,7 +103,20 @@ export const useEditorStore = create<EditorState>()(
 
       activeTheme: 'minimal',
 
-      coverConfig: null,
+      coverConfig: {
+        showCover: false,
+        title: '',
+        subtitle: '',
+        materia: '',
+        coverStyle: 'academic_elegant',
+        showLogo: true,
+        integrantes: [],
+        profesores: [],
+        sigla: '',
+        fecha: new Date().toLocaleDateString('es-AR'),
+        showHeader: true,
+        showFooter: true,
+      },
       pageConfig: null,
 
       zoomLevel: 100,
@@ -106,10 +124,25 @@ export const useEditorStore = create<EditorState>()(
 
       cursorLine: 1,
       cursorCol: 1,
-      wordCount: 5,
+      wordCount: 0,
+      
+      viewMode: 'dashboard',
+      setViewMode: (mode) => set({ viewMode: mode }),
 
-      setText: (text) =>
-        set({ documentText: text, isDirty: true, wordCount: text.trim() ? text.trim().split(/\s+/).length : 0 }),
+      setText: (text: string) => {
+        const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+        set(() => ({ documentText: text, isDirty: true, wordCount: words }));
+      },
+
+      loadBlankContent: (name) =>
+        set((state) => ({
+          documentText: '# ' + name.replace(/\.md$/, '') + '\n\nComienza a escribir aquí...',
+          fileName: name,
+          isDirty: false,
+          contentVersion: state.contentVersion + 1,
+          wordCount: 0,
+          viewMode: 'editor',
+        })),
 
       loadContent: (text, name) =>
         set((state) => ({
@@ -118,6 +151,7 @@ export const useEditorStore = create<EditorState>()(
           isDirty: false,
           contentVersion: state.contentVersion + 1,
           wordCount: text.trim() ? text.trim().split(/\s+/).length : 0,
+          viewMode: 'editor',
         })),
 
       setFileName: (name) => set({ fileName: name }),
