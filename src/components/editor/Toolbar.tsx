@@ -9,7 +9,7 @@ import {
 import { MagneticButton } from '@/components/ui/MagneticButton';
 
 function Divider() {
-  return <div className="w-px h-4 bg-[var(--border)] mx-1 shrink-0 opacity-60" />;
+  return <div className="w-px h-5 bg-[#E5E5E5] mx-2 shrink-0" />;
 }
 
 function TBtn({

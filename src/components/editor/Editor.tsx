@@ -91,27 +91,27 @@ export function Editor() {
         EditorView.theme({
           '&': {
             backgroundColor: 'transparent',
-            color: 'var(--text-main)',
+            color: '#171717',
             height: '100%',
           },
           '.cm-scroller': {
             fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-            fontSize: '14px',
-            lineHeight: '1.6',
-            padding: '20px',
+            fontSize: '14.5px',
+            lineHeight: '1.7',
+            padding: '24px 32px',
           },
           '.cm-gutters': {
             backgroundColor: 'transparent',
-            color: 'var(--text-muted)',
+            color: '#A3A3A3',
             border: 'none',
           },
           '.cm-activeLineGutter': {
             backgroundColor: 'transparent',
-            color: 'var(--accent)',
+            color: '#4F46E5',
             fontWeight: 'bold',
           },
           '.cm-activeLine': {
-            backgroundColor: 'rgba(194, 87, 42, 0.03)',
+            backgroundColor: 'rgba(79, 70, 229, 0.04)',
           },
         }),
       ],

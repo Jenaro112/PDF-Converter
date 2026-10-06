@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useEditorStore } from '@/store/editor-store';
 import { useMarkdownProcessor } from '@/lib/markdown/pipeline';
 import { generateRootCSS } from '@/lib/themes/document-themes';
 import { Paginator } from './Paginator';
 import { ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+
+gsap.registerPlugin(useGSAP);
 
 function PreviewControls({
   zoomLevel, setZoom, isPreviewExpanded, togglePreviewExpanded
@@ -18,33 +21,33 @@ function PreviewControls({
   togglePreviewExpanded: () => void;
 }) {
   return (
-    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-[var(--bg-surface)]/90 backdrop-blur-md px-5 py-2.5 rounded-full shadow-lg border border-[var(--border)] z-[60] text-[13px] font-medium text-[var(--text-main)] transition-all hover:shadow-xl">
+    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-white/90 backdrop-blur-xl px-6 py-3 rounded-2xl shadow-xl border border-[#E5E5E5] z-[60] text-[13px] font-semibold text-[#171717] transition-all hover:shadow-2xl">
       <button 
         onClick={(e) => { e.stopPropagation(); setZoom(zoomLevel - 10); }} 
-        className="p-1 hover:text-[var(--accent)] hover:bg-[var(--bg-sidebar)] rounded transition-colors"
+        className="p-1.5 text-[#A3A3A3] hover:text-[#4F46E5] hover:bg-[#EEF2FF] rounded-lg transition-colors"
         title="Alejar"
       >
-        <ZoomOut size={16} strokeWidth={2.5}/>
+        <ZoomOut size={18} strokeWidth={2.5}/>
       </button>
       
-      <span className="w-10 text-center select-none">{zoomLevel}%</span>
+      <span className="w-12 text-center select-none font-medium text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{zoomLevel}%</span>
       
       <button 
         onClick={(e) => { e.stopPropagation(); setZoom(zoomLevel + 10); }} 
-        className="p-1 hover:text-[var(--accent)] hover:bg-[var(--bg-sidebar)] rounded transition-colors"
+        className="p-1.5 text-[#A3A3A3] hover:text-[#4F46E5] hover:bg-[#EEF2FF] rounded-lg transition-colors"
         title="Acercar"
       >
-        <ZoomIn size={16} strokeWidth={2.5}/>
+        <ZoomIn size={18} strokeWidth={2.5}/>
       </button>
       
-      <div className="w-px h-5 bg-[var(--border)] mx-1" />
+      <div className="w-px h-6 bg-[#E5E5E5] mx-2" />
       
       <button 
         onClick={(e) => { e.stopPropagation(); togglePreviewExpanded(); }} 
-        className="flex items-center gap-2 p-1 pl-2 pr-3 hover:text-[var(--accent)] hover:bg-[var(--bg-sidebar)] rounded transition-colors"
+        className="flex items-center gap-2 p-1.5 pl-3 pr-4 text-[#A3A3A3] hover:text-[#4F46E5] hover:bg-[#EEF2FF] rounded-lg transition-colors"
         title={isPreviewExpanded ? "Salir de enfoque" : "Enfocar vista previa"}
       >
-        {isPreviewExpanded ? <Minimize2 size={16} strokeWidth={2.5}/> : <Maximize2 size={16} strokeWidth={2.5}/>}
+        {isPreviewExpanded ? <Minimize2 size={18} strokeWidth={2.5}/> : <Maximize2 size={18} strokeWidth={2.5}/>}
         <span>{isPreviewExpanded ? 'Salir' : 'Enfocar'}</span>
       </button>
     </div>
@@ -53,7 +56,8 @@ function PreviewControls({
 
 export function Preview() {
   const { documentText, zoomLevel, setZoom, isPreviewExpanded, togglePreviewExpanded, activeTheme } = useEditorStore();
-  const previewRef = React.useRef<HTMLDivElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const portalPreviewRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   
   const content = useMarkdownProcessor(documentText);
@@ -66,12 +70,15 @@ export function Preview() {
   useEffect(() => {
     const unsub = useEditorStore.subscribe((state, prevState) => {
       if (state.editorScrollPercent !== prevState.editorScrollPercent) {
-        if (previewRef.current) {
-          const maxScroll = previewRef.current.scrollHeight - previewRef.current.clientHeight;
-          if (maxScroll > 0) {
-            previewRef.current.scrollTop = maxScroll * state.editorScrollPercent;
+        const refs = [previewRef.current, portalPreviewRef.current];
+        refs.forEach(ref => {
+          if (ref) {
+            const maxScroll = ref.scrollHeight - ref.clientHeight;
+            if (maxScroll > 0) {
+              ref.scrollTop = maxScroll * state.editorScrollPercent;
+            }
           }
-        }
+        });
       }
     });
     return unsub;
@@ -79,15 +86,14 @@ export function Preview() {
 
   const innerContent = (
     <div className="h-full w-full flex justify-center py-12 px-8">
-      <motion.div 
-        layout
+      <div 
         className="transition-transform duration-300 ease-out origin-top"
         style={{ transform: `scale(${zoomLevel / 100})` }}
       >
         <Paginator>
           {content}
         </Paginator>
-      </motion.div>
+      </div>
     </div>
   );
 
@@ -95,62 +101,48 @@ export function Preview() {
     <>
       <style dangerouslySetInnerHTML={{ __html: generateRootCSS(activeTheme) }} />
 
-      {/* INLINE PREVIEW (when not expanded) */}
-      <AnimatePresence>
+      {/* INLINE PREVIEW */}
+      <div 
+        className="relative w-full h-full bg-[#FAFAFA] flex flex-col overflow-hidden"
+        style={{ opacity: isPreviewExpanded ? 0 : 1, pointerEvents: isPreviewExpanded ? 'none' : 'auto' }}
+      >
+        <div ref={previewRef} className="flex-1 overflow-auto custom-scroll">
+          {innerContent}
+        </div>
         {!isPreviewExpanded && (
-          <motion.div 
-            layoutId="preview-card"
-            className="relative w-full h-full bg-[var(--bg-preview)] shadow-inner flex flex-col overflow-hidden"
-            transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+          <PreviewControls 
+            zoomLevel={zoomLevel} 
+            setZoom={setZoom} 
+            isPreviewExpanded={false} 
+            togglePreviewExpanded={togglePreviewExpanded} 
+          />
+        )}
+      </div>
+
+      {/* EXPANDED PREVIEW (Portal) */}
+      {mounted && isPreviewExpanded && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-10">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-[#FAFAFA]/90 backdrop-blur-xl animate-in fade-in duration-300"
+            onClick={togglePreviewExpanded}
+          />
+
+          {/* Card */}
+          <div 
+            className="relative w-full h-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-[#E5E5E5] flex flex-col animate-in zoom-in-95 duration-300"
           >
-            <div ref={previewRef} className="flex-1 overflow-auto">
+            <div ref={portalPreviewRef} className="flex-1 overflow-auto custom-scroll">
               {innerContent}
             </div>
             <PreviewControls 
               zoomLevel={zoomLevel} 
               setZoom={setZoom} 
-              isPreviewExpanded={false} 
+              isPreviewExpanded={true} 
               togglePreviewExpanded={togglePreviewExpanded} 
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* EXPANDED PREVIEW (Portal) */}
-      {mounted && createPortal(
-        <AnimatePresence>
-          {isPreviewExpanded && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-10 pointer-events-none">
-              
-              {/* Backdrop */}
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-                className="absolute inset-0 bg-[var(--bg-base)]/80 backdrop-blur-md pointer-events-auto"
-                onClick={togglePreviewExpanded}
-              />
-
-              {/* Card */}
-              <motion.div 
-                layoutId="preview-card"
-                className="relative w-full h-full max-w-6xl bg-[var(--bg-preview)] rounded-2xl shadow-2xl overflow-hidden border border-[var(--border)] pointer-events-auto flex flex-col"
-                transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-              >
-                <div ref={previewRef} className="flex-1 overflow-auto">
-                  {innerContent}
-                </div>
-                <PreviewControls 
-                  zoomLevel={zoomLevel} 
-                  setZoom={setZoom} 
-                  isPreviewExpanded={true} 
-                  togglePreviewExpanded={togglePreviewExpanded} 
-                />
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>,
+          </div>
+        </div>,
         document.body
       )}
     </>

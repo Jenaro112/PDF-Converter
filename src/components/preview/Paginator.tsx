@@ -79,7 +79,7 @@ export function Paginator({ children }: { children: React.ReactNode }) {
         className="measurement-container"
         style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', width: '210mm', padding: '20mm', zIndex: -1000 }}
       >
-        <div className="preview-content" ref={measureRef} style={{ fontFamily: "'Inter', sans-serif", fontSize: '11pt', lineHeight: '1.6' }}>
+        <div className="preview-content" ref={measureRef}>
           {children}
         </div>
       </div>
@@ -87,7 +87,7 @@ export function Paginator({ children }: { children: React.ReactNode }) {
       {/* Portada */}
       <CoverRenderer />
 
-      {/* Páginas A4 */}
+      {/* Pginas A4 */}
       {pages.map((pageHtml, index) => {
         const pageNumber = index + 1; // Content pages start at 1
         const totalContentPages = pages.length;
@@ -97,14 +97,13 @@ export function Paginator({ children }: { children: React.ReactNode }) {
         return (
           <div
             key={index}
-            className="a4-page bg-white shadow-md print:shadow-none border border-[var(--border)] print:border-none relative overflow-hidden shrink-0 print:m-0"
+            className="a4-page bg-white shadow-md print:shadow-none border border-[#E5E5E5] print:border-none relative overflow-hidden shrink-0 print:m-0"
             style={{
               width: '210mm',
               height: '297mm',
               backgroundColor: '#ffffff',
               pageBreakAfter: index === pages.length - 1 ? 'auto' : 'always',
               breakAfter:     index === pages.length - 1 ? 'auto' : 'page',
-              fontFamily: "'Arial', 'Helvetica', sans-serif",
             }}
           >
             {/* Header */}
