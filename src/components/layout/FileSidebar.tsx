@@ -13,7 +13,7 @@ interface DocFile {
 }
 
 export function FileSidebar() {
-  const { isSidebarOpen, fileName, setText, setFileName, loadContent, activeTheme, coverConfig } = useEditorStore();
+  const { isSidebarOpen, fileName, setText, setFileName, loadContent, activeTheme, coverConfig, setCover, setTheme } = useEditorStore();
 
   const [docs, setDocs]           = useState<DocFile[]>([]);
   const [loading, setLoading]     = useState(false);
@@ -43,8 +43,9 @@ export function FileSidebar() {
 
   useEffect(() => {
     if (!isSidebarOpen) return;
-    const interval = setInterval(fetchDocs, 3000);
-    return () => clearInterval(interval);
+    const onFocus = () => fetchDocs();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
   }, [isSidebarOpen, fetchDocs]);
 
   useEffect(() => {
@@ -60,12 +61,23 @@ export function FileSidebar() {
   }, [renamingFile]);
 
   const loadDoc = async (name: string) => {
-    if (fileName === name) return;
+    if (!name || fileName === name) return;
     try {
-      const res  = await fetch(`/api/docs/load?file=${encodeURIComponent(name)}`);
+      const safeName = name.endsWith('.md') ? name : `${name}.md`;
+      const res  = await fetch(`/api/docs/load?file=${encodeURIComponent(safeName)}`);
+      if (!res.ok) {
+        alert('Error cargando documento');
+        return;
+      }
       const data = await res.json();
       if (data.content !== undefined) {
-        loadContent(data.content, name);
+        loadContent(data.content, safeName);
+        if (data.frontmatter?.coverConfig) {
+          setCover(data.frontmatter.coverConfig);
+        }
+        if (data.frontmatter?.activeTheme) {
+          setTheme(data.frontmatter.activeTheme);
+        }
       }
     } catch {
       alert('Error cargando documento');

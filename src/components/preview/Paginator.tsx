@@ -4,24 +4,71 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CoverRenderer } from './covers/CoverRenderer';
 import { useEditorStore } from '@/store/editor-store';
 
+function resolveTemplate(
+  template: any,
+  vars: {
+    pageNumber: number;
+    totalPages: number;
+    title: string;
+    sigla: string;
+    materia: string;
+    fecha: string;
+  }
+): string {
+  if (template === undefined || template === null) return '';
+  let res = String(template)
+    .replace(/\{pagina\}|\{page\}/gi, String(vars.pageNumber))
+    .replace(/\{total\}|\{totalpages\}|\{n\}/gi, String(vars.totalPages))
+    .replace(/\{titulo\}|\{title\}/gi, vars.title)
+    .replace(/\{sigla\}/gi, vars.sigla)
+    .replace(/\{materia\}/gi, vars.materia)
+    .replace(/\{fecha\}|\{date\}/gi, vars.fecha);
+
+  res = res.replace(/^\s*[-–—]\s*/, '').replace(/\s*[-–—]\s*$/, '').trim();
+  return res;
+}
+
+function getNumberingString(
+  format: string | undefined,
+  pageNumber: number,
+  totalPages: number
+): string {
+  switch (format) {
+    case 'x_de_y':
+      return `${pageNumber} / ${totalPages}`;
+    case 'pagina_x':
+      return `Página ${pageNumber}`;
+    case 'guiones':
+      return `- ${pageNumber} -`;
+    case 'solo_numero':
+      return `${pageNumber}`;
+    case 'ninguno':
+      return '';
+    case 'pagina_x_de_y':
+    default:
+      return `Página ${pageNumber} de ${totalPages}`;
+  }
+}
+
 export function Paginator({ children }: { children: React.ReactNode }) {
   const measureRef = useRef<HTMLDivElement>(null);
   const [pages, setPages] = useState<string[]>([]);
   const coverConfig = useEditorStore((s) => s.coverConfig);
 
   const hasCover  = !!(coverConfig?.showCover);
-  const sigla     = coverConfig?.sigla?.trim() || '';
-  const docTitle  = coverConfig?.title?.trim() || '';
-  const totalPages = pages.length + (hasCover ? 1 : 0);
+  const sigla     = coverConfig?.sigla != null ? String(coverConfig.sigla).trim() : '';
+  const docTitle  = coverConfig?.title != null ? String(coverConfig.title).trim() : '';
+  const materia   = coverConfig?.materia != null ? String(coverConfig.materia).trim() : '';
+  const fecha     = coverConfig?.fecha != null ? String(coverConfig.fecha).trim() : '';
 
   useEffect(() => {
     if (!measureRef.current) return;
     
-    const renderHeader = coverConfig?.showHeader !== false && (sigla || docTitle);
+    const renderHeader = coverConfig?.showHeader !== false;
     const renderFooter = coverConfig?.showFooter !== false;
     
-    const topMargin = renderHeader ? 30 : 20;
-    const bottomMargin = renderFooter ? 30 : 20;
+    const topMargin = renderHeader ? 25 : 16;
+    const bottomMargin = renderFooter ? 25 : 16;
     const availableHeight = 297 - topMargin - bottomMargin;
 
     const ruler = document.createElement('div');
@@ -37,12 +84,63 @@ export function Paginator({ children }: { children: React.ReactNode }) {
     let currentPageHtml = '';
     let currentHeight   = 0;
 
+    interface PageItem {
+      el: Element;
+      html: string;
+      height: number;
+    }
+    let currentPageElements: PageItem[] = [];
+
+    const isHeading = (el: Element) => /^H[1-6]$/i.test(el.tagName);
+
+    // Evita cadenas de encabezados o encabezados con breve texto introductorio huérfanos al pie de página
+    const getTrailingOrphanChain = (): { orphanHtml: string; orphanHeight: number; count: number } | null => {
+      const len = currentPageElements.length;
+      if (len === 0) return null;
+
+      let idx = len - 1;
+      let count = 0;
+      let hasHeading = false;
+
+      // Si el último elemento es un párrafo corto de intro (< 140px)
+      if (currentPageElements[idx].el.tagName === 'P' && currentPageElements[idx].height < 140) {
+        idx--;
+        count++;
+      }
+
+      // Acumula TODOS los encabezados contiguos que estén antes (H1, H2, H3, etc.)
+      while (idx >= 0 && isHeading(currentPageElements[idx].el)) {
+        hasHeading = true;
+        idx--;
+        count++;
+      }
+
+      // Si no encontramos ningún encabezado, o si toda la página son solo estos elementos
+      if (!hasHeading || count >= len) {
+        return null;
+      }
+
+      const orphanItems = currentPageElements.slice(len - count);
+      const orphanHtml = orphanItems.map(item => item.html).join('');
+      const orphanHeight = orphanItems.reduce((acc, item) => acc + item.height, 0);
+
+      return { orphanHtml, orphanHeight, count };
+    };
+
+    const isOnlyHeadingsOnPage = (): boolean => {
+      if (currentPageElements.length === 0) return false;
+      return currentPageElements.every(
+        it => isHeading(it.el) || (it.el.tagName === 'P' && it.height < 140)
+      );
+    };
+
     elements.forEach(el => {
       const isPageBreak = el.classList.contains('page-break');
       if (isPageBreak) {
-        newPages.push(currentPageHtml);
+        if (currentPageHtml.trim() !== '') newPages.push(currentPageHtml);
         currentPageHtml = '';
         currentHeight   = 0;
+        currentPageElements = [];
         return;
       }
       const rect        = el.getBoundingClientRect();
@@ -51,13 +149,150 @@ export function Paginator({ children }: { children: React.ReactNode }) {
       const marginBottom= parseFloat(style.marginBottom) || 0;
       const elHeight    = rect.height + marginTop + marginBottom;
 
-      if (currentHeight + elHeight > MAX_HEIGHT && currentHeight > 0) {
+      // 1. Prevención preventiva de encabezados huérfanos antes de agregarlos
+      if (isHeading(el) && currentHeight > 0 && currentHeight + elHeight + 90 > MAX_HEIGHT) {
         newPages.push(currentPageHtml);
         currentPageHtml = el.outerHTML;
         currentHeight   = elHeight;
+        currentPageElements = [{ el, html: el.outerHTML, height: elHeight }];
+        return;
+      }
+
+      // 2. División inteligente de listas (UL / OL) que desbordan la página
+      if ((el.tagName === 'UL' || el.tagName === 'OL') && currentHeight + elHeight > MAX_HEIGHT && el.children.length > 0) {
+        const lis = Array.from(el.children);
+        const listTag = el.tagName.toLowerCase();
+        const listClasses = el.className ? ` class="${el.className}"` : '';
+        const listStyle = el.getAttribute('style') ? ` style="${el.getAttribute('style')}"` : '';
+
+        const firstLi = lis[0] as HTMLElement;
+        const firstLiStyle = window.getComputedStyle(firstLi);
+        const firstLiHeight = firstLi.getBoundingClientRect().height + 
+          (parseFloat(firstLiStyle.marginTop) || 0) + 
+          (parseFloat(firstLiStyle.marginBottom) || 0);
+
+        // Si no cabe ni el primer ítem, revisar si hay título/intro previo que deba acompañarlo
+        if (currentHeight + firstLiHeight > MAX_HEIGHT && currentHeight > 0) {
+          const orphan = getTrailingOrphanChain();
+          if (orphan) {
+            currentPageElements = currentPageElements.slice(0, currentPageElements.length - orphan.count);
+            const remainingHtml = currentPageElements.map(item => item.html).join('');
+            if (remainingHtml.trim() !== '') {
+              newPages.push(remainingHtml);
+            }
+            currentPageHtml = orphan.orphanHtml;
+            currentHeight = orphan.orphanHeight;
+            currentPageElements = [
+              { el: document.createElement('div'), html: orphan.orphanHtml, height: orphan.orphanHeight }
+            ];
+          } else if (!isOnlyHeadingsOnPage()) {
+            newPages.push(currentPageHtml);
+            currentPageHtml = '';
+            currentHeight = 0;
+            currentPageElements = [];
+          }
+        }
+
+        let currentListHtml = `<${listTag}${listClasses}${listStyle}>`;
+        let hasItemsInCurrentList = false;
+
+        lis.forEach(li => {
+          const liEl = li as HTMLElement;
+          const lStyle = window.getComputedStyle(liEl);
+          const liHeight = liEl.getBoundingClientRect().height + 
+            (parseFloat(lStyle.marginTop) || 0) + 
+            (parseFloat(lStyle.marginBottom) || 0);
+
+          if (currentHeight + liHeight > MAX_HEIGHT && currentHeight > 0) {
+            if (hasItemsInCurrentList) {
+              currentListHtml += `</${listTag}>`;
+              currentPageHtml += currentListHtml;
+            }
+            newPages.push(currentPageHtml);
+            currentPageHtml = '';
+            currentHeight = 0;
+            currentPageElements = [];
+            currentListHtml = `<${listTag}${listClasses}${listStyle}>`;
+            hasItemsInCurrentList = false;
+          }
+
+          currentListHtml += li.outerHTML;
+          currentHeight += liHeight;
+          hasItemsInCurrentList = true;
+        });
+
+        if (hasItemsInCurrentList) {
+          currentListHtml += `</${listTag}>`;
+          currentPageHtml += currentListHtml;
+          currentPageElements.push({ el, html: currentListHtml, height: currentHeight });
+        }
+        return;
+      }
+
+      // 3. Manejo de TABLAS: se mantienen ENTERAS (sin dividir filas entre páginas)
+      if (el.tagName === 'TABLE') {
+        if (currentHeight + elHeight > MAX_HEIGHT && currentHeight > 0) {
+          const orphan = getTrailingOrphanChain();
+          if (orphan) {
+            currentPageElements = currentPageElements.slice(0, currentPageElements.length - orphan.count);
+            const remainingHtml = currentPageElements.map(item => item.html).join('');
+            if (remainingHtml.trim() !== '') {
+              newPages.push(remainingHtml);
+            }
+            currentPageHtml = orphan.orphanHtml + el.outerHTML;
+            currentHeight = orphan.orphanHeight + elHeight;
+            currentPageElements = [
+              { el: document.createElement('div'), html: orphan.orphanHtml, height: orphan.orphanHeight },
+              { el, html: el.outerHTML, height: elHeight }
+            ];
+          } else if (isOnlyHeadingsOnPage()) {
+            currentPageHtml += el.outerHTML;
+            currentHeight += elHeight;
+            currentPageElements.push({ el, html: el.outerHTML, height: elHeight });
+          } else {
+            newPages.push(currentPageHtml);
+            currentPageHtml = el.outerHTML;
+            currentHeight = elHeight;
+            currentPageElements = [{ el, html: el.outerHTML, height: elHeight }];
+          }
+        } else {
+          currentPageHtml += el.outerHTML;
+          currentHeight += elHeight;
+          currentPageElements.push({ el, html: el.outerHTML, height: elHeight });
+        }
+        return;
+      }
+
+      // 4. Elementos estándar (párrafos, pre/código, blockquotes, etc.)
+      if (currentHeight + elHeight > MAX_HEIGHT && currentHeight > 0) {
+        const orphan = getTrailingOrphanChain();
+        if (orphan) {
+          currentPageElements = currentPageElements.slice(0, currentPageElements.length - orphan.count);
+          const remainingHtml = currentPageElements.map(item => item.html).join('');
+          if (remainingHtml.trim() !== '') {
+            newPages.push(remainingHtml);
+          }
+          currentPageHtml = orphan.orphanHtml + el.outerHTML;
+          currentHeight = orphan.orphanHeight + elHeight;
+          currentPageElements = [
+            { el: document.createElement('div'), html: orphan.orphanHtml, height: orphan.orphanHeight },
+            { el, html: el.outerHTML, height: elHeight }
+          ];
+        } else if (isOnlyHeadingsOnPage()) {
+          // Si la página tiene solo encabezados, NUNCA empujar una hoja con el título solo
+          currentPageHtml += el.outerHTML;
+          currentHeight += elHeight;
+          currentPageElements.push({ el, html: el.outerHTML, height: elHeight });
+        } else {
+          newPages.push(currentPageHtml);
+          currentPageHtml = el.outerHTML;
+          currentHeight = elHeight;
+          currentPageElements = [{ el, html: el.outerHTML, height: elHeight }];
+        }
       } else {
         currentPageHtml += el.outerHTML;
-        currentHeight   += elHeight;
+        currentHeight += elHeight;
+        currentPageElements.push({ el, html: el.outerHTML, height: elHeight });
       }
     });
 
@@ -91,8 +326,41 @@ export function Paginator({ children }: { children: React.ReactNode }) {
       {pages.map((pageHtml, index) => {
         const pageNumber = index + 1; // Content pages start at 1
         const totalContentPages = pages.length;
-        const renderHeader = coverConfig?.showHeader !== false && (sigla || docTitle);
+        const renderHeader = coverConfig?.showHeader !== false;
         const renderFooter = coverConfig?.showFooter !== false;
+
+        const vars = {
+          pageNumber,
+          totalPages: totalContentPages,
+          title: docTitle,
+          sigla,
+          materia,
+          fecha,
+        };
+
+        // Header configuration
+        const headerShowLine = coverConfig?.headerShowLine !== false;
+        const rawHeaderLeft = coverConfig?.headerLeft !== undefined && String(coverConfig.headerLeft).trim() !== ''
+          ? coverConfig.headerLeft
+          : (sigla && docTitle ? '{sigla} - {title}' : (docTitle || sigla || ''));
+        const headerLeftText = resolveTemplate(rawHeaderLeft, vars);
+        const headerCenterText = resolveTemplate(coverConfig?.headerCenter, vars);
+        const headerRightText = resolveTemplate(coverConfig?.headerRight != null && String(coverConfig.headerRight).trim() !== '' ? coverConfig.headerRight : (fecha ? '{fecha}' : ''), vars);
+
+        // Footer configuration
+        const footerShowLine = coverConfig?.footerShowLine !== false;
+        const rawFooterLeft = coverConfig?.footerLeft !== undefined && String(coverConfig.footerLeft).trim() !== ''
+          ? coverConfig.footerLeft
+          : (materia || (sigla && docTitle ? '{sigla} - {title}' : ''));
+        const footerLeftText = resolveTemplate(rawFooterLeft, vars);
+        const footerCenterText = resolveTemplate(coverConfig?.footerCenter, vars);
+        
+        let footerRightText = '';
+        if (coverConfig?.footerRight !== undefined && String(coverConfig.footerRight).trim() !== '') {
+          footerRightText = resolveTemplate(coverConfig.footerRight, vars);
+        } else {
+          footerRightText = getNumberingString(coverConfig?.footerNumbering, pageNumber, totalContentPages);
+        }
 
         return (
           <div
@@ -111,7 +379,7 @@ export function Paginator({ children }: { children: React.ReactNode }) {
               <div
                 style={{
                   position: 'absolute',
-                  top: '14mm',
+                  top: '12mm',
                   left: '20mm',
                   right: '20mm',
                 }}
@@ -121,19 +389,25 @@ export function Paginator({ children }: { children: React.ReactNode }) {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'baseline',
-                  fontSize: '9pt',
-                  color: '#333',
-                  fontFamily: 'Arial, Helvetica, sans-serif',
-                  marginBottom: '3mm'
+                  fontSize: '8.5pt',
+                  color: '#4B5563',
+                  fontFamily: "'Space Grotesk', system-ui, sans-serif",
+                  marginBottom: '2mm'
                 }}>
-                  <div>
-                    {sigla && <strong>{sigla}</strong>}
-                    {sigla && docTitle && ' - '}
-                    {docTitle}
+                  <div style={{ textAlign: 'left', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {headerLeftText}
+                  </div>
+                  {headerCenterText && (
+                    <div style={{ textAlign: 'center', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {headerCenterText}
+                    </div>
+                  )}
+                  <div style={{ textAlign: 'right', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {headerRightText}
                   </div>
                 </div>
                 {/* Línea abajo del texto */}
-                <div style={{ height: '1px', backgroundColor: '#c0c0c0' }} />
+                {headerShowLine && <div style={{ height: '1px', backgroundColor: '#E5E7EB' }} />}
               </div>
             )}
 
@@ -142,15 +416,16 @@ export function Paginator({ children }: { children: React.ReactNode }) {
               className="preview-content"
               style={{
                 position: 'absolute',
-                top:    renderHeader ? '30mm' : '20mm',
+                top:    renderHeader ? '24mm' : '16mm',
                 left:   '20mm',
                 right:  '20mm',
-                bottom: renderFooter ? '30mm' : '20mm',
+                bottom: renderFooter ? '24mm' : '16mm',
                 overflow: 'hidden',
                 fontFamily: "'Inter', sans-serif",
                 color: '#2d2d2d',
                 lineHeight: '1.6',
                 fontSize: '11pt',
+                textAlign: 'justify',
               }}
               dangerouslySetInnerHTML={{ __html: pageHtml }}
             />
@@ -160,29 +435,32 @@ export function Paginator({ children }: { children: React.ReactNode }) {
               <div
                 style={{
                   position: 'absolute',
-                  bottom: '14mm',
+                  bottom: '12mm',
                   left: '20mm',
                   right: '20mm',
                 }}
               >
                 {/* Línea arriba del texto */}
-                <div style={{ height: '1px', backgroundColor: '#c0c0c0', marginBottom: '3mm' }} />
+                {footerShowLine && <div style={{ height: '1px', backgroundColor: '#E5E7EB', marginBottom: '2mm' }} />}
                 {/* Texto */}
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'baseline',
-                  fontSize: '9pt',
-                  color: '#333',
-                  fontFamily: 'Arial, Helvetica, sans-serif',
+                  fontSize: '8.5pt',
+                  color: '#4B5563',
+                  fontFamily: "'Space Grotesk', system-ui, sans-serif",
                 }}>
-                  <div>
-                    {sigla && <strong>{sigla}</strong>}
-                    {sigla && docTitle && ' - '}
-                    {docTitle}
+                  <div style={{ textAlign: 'left', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {footerLeftText}
                   </div>
-                  <div>
-                    <strong>Página {pageNumber} de {totalContentPages}</strong>
+                  {footerCenterText && (
+                    <div style={{ textAlign: 'center', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {footerCenterText}
+                    </div>
+                  )}
+                  <div style={{ textAlign: 'right', flex: 1, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {footerRightText}
                   </div>
                 </div>
               </div>

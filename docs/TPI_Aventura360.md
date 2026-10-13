@@ -1,0 +1,38 @@
+# Requerimientos
+
+| ID | Requerimiento | Actor | Descripción | Prioridad Acordada | Tipo |
+| --- | --- | --- | --- | --- | --- |
+| **RNF-001** | Diseño responsive | <span style="background-color: #e0e0e0;">Sistema</span> | El sistema deberá adaptarse a dispositivos móviles y de escritorio. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #e1bee7;">No funcional</span> |
+| **RNF-002** | Disponibilidad | <span style="background-color: #e0e0e0;">Sistema</span> | El sistema debe estar disponible y funcional 24/7. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #e1bee7;">No funcional</span> |
+| **RNF-003** | Seguridad | <span style="background-color: #e0e0e0;">Sistema</span> | Requisito pendiente de definición. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #e1bee7;">No funcional</span> |
+| **RNF-004** | Rendimiento | <span style="background-color: #e0e0e0;">Sistema</span> | El sistema podría funcionar de manera adecuada. | <span style="background-color: #fff59d;">Could</span> | <span style="background-color: #e1bee7;">No funcional</span> |
+| **RF-001** | Consultar catálogo | <span style="background-color: #c8e6c9;">Comprador</span>, <span style="background-color: #fff9c4;">Invitado</span> | El comprador debe poder visualizar los productos disponibles. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-002** | Buscar productos | <span style="background-color: #c8e6c9;">Comprador</span>, <span style="background-color: #fff9c4;">Invitado</span> | El comprador debe poder buscar productos. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-003** | Filtrar productos | <span style="background-color: #c8e6c9;">Comprador</span>, <span style="background-color: #fff9c4;">Invitado</span> | El comprador debe poder filtrar productos según diferentes criterios. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-004** | Gestionar carrito | <span style="background-color: #c8e6c9;">Comprador</span> | El comprador debe poder agregar y quitar productos del carrito. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-005** | Gestionar favoritos | <span style="background-color: #c8e6c9;">Comprador</span> | El comprador debería guardar productos como favoritos. | <span style="background-color: #ffcc80;">Should</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-006** | Consultar historial | <span style="background-color: #c8e6c9;">Comprador</span> | El comprador debería consultar compras anteriores. | <span style="background-color: #ffcc80;">Should</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-007** | Realizar pago | <span style="background-color: #c8e6c9;">Comprador</span> | El comprador debe poder pagar mediante Mercado Pago. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-008** | Recibir comprobante | <span style="background-color: #c8e6c9;">Comprador</span> | El sistema debe enviar un comprobante de la compra. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-009** | Seguimiento del pedido | <span style="background-color: #c8e6c9;">Comprador</span> | El comprador debe poder consultar el estado de su pedido. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+
+<div style="page-break-after: always;"></div>
+
+| ID | Requerimiento | Actor | Descripción | Prioridad Acordada | Tipo |
+| --- | --- | --- | --- | --- | --- |
+| **RF-010** | Utilizar asistente | <span style="background-color: #c8e6c9;">Comprador</span> | El comprador debe poder utilizar un asistente para recibir recomendaciones. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-011** | Gestionar productos | <span style="background-color: #ffe0b2;">Administrador</span> | El administrador debe poder dar de alta, modificar y administrar productos. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-012** | Gestionar stock | <span style="background-color: #ffe0b2;">Administrador</span> | El administrador debe poder consultar y modificar el stock. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-013** | Gestionar ofertas | <span style="background-color: #ffe0b2;">Administrador</span> | El administrador debe poder crear y administrar ofertas. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-014** | Gestionar métricas | <span style="background-color: #ffe0b2;">Administrador</span> | El administrador debería consultar métricas del negocio. | <span style="background-color: #ffcc80;">Should</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-015** | Gestionar pedidos | <span style="background-color: #ffe0b2;">Administrador</span> | El administrador debe poder gestionar el estado de los pedidos. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-016** | Iniciar sesión | <span style="background-color: #ffe0b2;">Administrador</span>, <span style="background-color: #c8e6c9;">Comprador</span> | El Comprador y el administrador deben poder iniciar sesión para explorar la pagina con su usuario. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-017** | Recuperar contraseña | <span style="background-color: #ffe0b2;">Administrador</span>, <span style="background-color: #c8e6c9;">Comprador</span> | El comprador y el administrador deben poder recuperar su contraseña en caso de olvido. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-018** | Registrarse | <span style="background-color: #fff9c4;">Invitado</span> | El Invitado debe poder registrarse para poder crear su usuario en el sistema. | <span style="background-color: #ffcdd2;">Must</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+| **RF-020** | Consultar logs | <span style="background-color: #ffe0b2;">Administrador</span> | El Administrador debería poder revisar los logs de cada usuario administrador. | <span style="background-color: #ffcc80;">Should</span> | <span style="background-color: #b3e5fc;">Funcional</span> |
+
+<div style="page-break-after: always;"></div>
+
+## Diagrama de Casos de Uso
+
+![Diagrama de Casos de Uso](https://kroki.io/plantuml/png/eNp1k09O6zAQxvc-xahvjdT8oYVd80Lz6IYN4gCj2A0WiR2NnfIE4jAsOQcXww42pFWa2Yy--eWbiT3ZGItkh65lrdhbsBpINo8WuCRRW6kVY-ZJqh4JO-Bij0NrK63sHXYCbkV7EFbWOM_cyxcBST4pkh4UrzUpQZAsJwXziFw_S9XAHlsjpk0HI2o0Al4ZwF-sn5rRpNStJvizzaq0uvEVTVxQUNPkelVlTvVTBG15k6-LhL1NrbG2rjRrXI3PqXGe-jg2ThMfx8a9s8PmzMxV4ePUerv0cWwd2h3PTKSfR-MAXW99eOj7c3bqIK07TUADu6CVuuvJaeTFMogF76SSxv4UCsbi4IviIJQdCCFbLRdju3gPi3_C-MVAgnpwEC78uw9lMmW2_3s3nEN60nxw7Uyg0jNO44CByeaZXnDJf4zyeWiPB03yt9_lmX5oP99b3eiAraZYqZVxK-yw7vPDktvv6Laex5xRJK78Rezg4mI8kZCkrIxKeaJkMcljcsmK72QVkzwm65hcsY1Q3P21X2VgLjs=)

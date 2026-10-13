@@ -8,11 +8,14 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const fileName = searchParams.get('file');
 
-    if (!fileName || fileName.includes('..') || !fileName.endsWith('.md')) {
+    if (!fileName || fileName.trim() === '' || fileName === 'null' || fileName === 'undefined' || fileName.includes('..')) {
       return NextResponse.json({ error: 'Nombre de archivo invalido' }, { status: 400 });
     }
 
-    const filePath = path.join(process.cwd(), 'docs', fileName);
+    const cleanName = fileName.trim();
+    const safeName = cleanName.endsWith('.md') ? cleanName : `${cleanName}.md`;
+
+    const filePath = path.join(process.cwd(), 'docs', safeName);
     if (!fs.existsSync(filePath)) {
       return NextResponse.json({ error: 'Archivo no encontrado' }, { status: 404 });
     }

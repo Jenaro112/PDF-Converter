@@ -10,12 +10,12 @@ gsap.registerPlugin(useGSAP);
 
 interface DocInfo {
   name: string;
-  modified: number;
+  modified: string | number;
   size: number;
 }
 
 export function Dashboard() {
-  const { loadBlankContent, loadContent } = useEditorStore();
+  const { loadBlankContent, loadContent, setCover, setTheme } = useEditorStore();
   const [docs, setDocs] = useState<DocInfo[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -26,11 +26,14 @@ export function Dashboard() {
   const fetchDocs = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/docs/list');
+      const res = await fetch('/api/docs');
+      if (!res.ok) {
+        throw new Error(`Failed to fetch docs: ${res.statusText}`);
+      }
       const data = await res.json();
       setDocs(data.files || []);
-    } catch {
-      console.error('Error fetching docs');
+    } catch (err) {
+      console.error('Error fetching docs', err);
     } finally {
       setLoading(false);
     }
@@ -58,16 +61,28 @@ export function Dashboard() {
   }, [loading, docs.length]);
 
   const createBlank = () => {
-    const name = `Documento-${Math.floor(Math.random() * 10000)}`;
+    const name = `Documento-${Math.floor(Math.random() * 10000)}.md`;
     loadBlankContent(name);
   };
 
   const openDoc = async (name: string) => {
+    if (!name) return;
     try {
-      const res = await fetch(`/api/docs/load?file=${encodeURIComponent(name)}`);
+      const safeName = name.endsWith('.md') ? name : `${name}.md`;
+      const res = await fetch(`/api/docs/load?file=${encodeURIComponent(safeName)}`);
+      if (!res.ok) {
+        alert('Error al cargar documento');
+        return;
+      }
       const data = await res.json();
       if (data.content !== undefined) {
-        loadContent(data.content, name);
+        loadContent(data.content, safeName);
+        if (data.frontmatter?.coverConfig) {
+          setCover(data.frontmatter.coverConfig);
+        }
+        if (data.frontmatter?.activeTheme) {
+          setTheme(data.frontmatter.activeTheme);
+        }
       }
     } catch {
       alert('Error al cargar documento');

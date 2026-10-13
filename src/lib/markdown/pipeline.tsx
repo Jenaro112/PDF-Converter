@@ -14,6 +14,7 @@ import rehypeReact from 'rehype-react';
 import * as prod from 'react/jsx-runtime';
 import { remarkPastel } from './plugins/remark-pastel';
 import { Mermaid } from '@/components/preview/Mermaid';
+import { StatsPlot } from '@/components/preview/StatsPlot';
 
 const production = { Fragment: prod.Fragment, jsx: prod.jsx, jsxs: prod.jsxs };
 
@@ -75,6 +76,14 @@ export function useMarkdownProcessor(text: string) {
             pre: (props: any) => {
               const childrenArray = React.Children.toArray(props.children);
               
+              // Función recursiva para extraer texto de los hijos de React
+              const extractText = (node: any): string => {
+                if (typeof node === 'string' || typeof node === 'number') return String(node);
+                if (Array.isArray(node)) return node.map(extractText).join('');
+                if (React.isValidElement(node)) return extractText((node.props as any).children);
+                return '';
+              };
+
               // Buscamos cualquier hijo que tenga la clase 'language-mermaid'
               const mermaidChild = childrenArray.find(
                 (child) => React.isValidElement(child) && 
@@ -83,16 +92,22 @@ export function useMarkdownProcessor(text: string) {
               ) as React.ReactElement<any> | undefined;
 
               if (mermaidChild) {
-                // Función recursiva para extraer texto de los hijos de React
-                const extractText = (node: any): string => {
-                  if (typeof node === 'string' || typeof node === 'number') return String(node);
-                  if (Array.isArray(node)) return node.map(extractText).join('');
-                  if (React.isValidElement(node)) return extractText((node.props as any).children);
-                  return '';
-                };
-                
                 const code = extractText(mermaidChild.props.children);
                 return <Mermaid chart={code} />;
+              }
+
+              // Buscamos cualquier hijo que tenga la clase para gráficos estadísticos
+              const statsChild = childrenArray.find(
+                (child) => React.isValidElement(child) && 
+                           typeof (child as React.ReactElement<any>).props.className === 'string' && 
+                           ((child as React.ReactElement<any>).props.className.includes('language-stats-plot') ||
+                            (child as React.ReactElement<any>).props.className.includes('language-stats') ||
+                            (child as React.ReactElement<any>).props.className.includes('language-plot'))
+              ) as React.ReactElement<any> | undefined;
+
+              if (statsChild) {
+                const code = extractText(statsChild.props.children);
+                return <StatsPlot configText={code} />;
               }
               
               return <pre {...props} />;

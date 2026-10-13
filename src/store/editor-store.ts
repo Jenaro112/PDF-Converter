@@ -16,7 +16,16 @@ export interface CoverData {
   /** Fecha que se muestra en la portada (ej: "13/06/2026") */
   fecha?: string;
   showHeader?: boolean;
+  headerLeft?: string;
+  headerCenter?: string;
+  headerRight?: string;
+  headerShowLine?: boolean;
   showFooter?: boolean;
+  footerLeft?: string;
+  footerCenter?: string;
+  footerRight?: string;
+  footerNumbering?: 'pagina_x_de_y' | 'x_de_y' | 'pagina_x' | 'guiones' | 'solo_numero' | 'ninguno';
+  footerShowLine?: boolean;
 }
 
 export interface PageConfigData {
@@ -115,7 +124,16 @@ export const useEditorStore = create<EditorState>()(
         sigla: '',
         fecha: new Date().toLocaleDateString('es-AR'),
         showHeader: true,
+        headerLeft: '',
+        headerCenter: '',
+        headerRight: '',
+        headerShowLine: true,
         showFooter: true,
+        footerLeft: '',
+        footerCenter: '',
+        footerRight: '',
+        footerNumbering: 'pagina_x_de_y',
+        footerShowLine: true,
       },
       pageConfig: null,
 
@@ -134,33 +152,43 @@ export const useEditorStore = create<EditorState>()(
         set(() => ({ documentText: text, isDirty: true, wordCount: words }));
       },
 
-      loadBlankContent: (name) =>
-        set((state) => ({
-          documentText: '# ' + name.replace(/\.md$/, '') + '\n\nComienza a escribir aquí...',
-          fileName: name,
+      loadBlankContent: (name) => {
+        const safeName = name ? (name.endsWith('.md') ? name : `${name}.md`) : `Documento-${Date.now()}.md`;
+        return set((state) => ({
+          documentText: '# ' + safeName.replace(/\.md$/, '') + '\n\nComienza a escribir aquí...',
+          fileName: safeName,
           isDirty: false,
           contentVersion: state.contentVersion + 1,
           wordCount: 0,
           viewMode: 'editor',
-        })),
+        }));
+      },
 
-      loadContent: (text, name) =>
-        set((state) => ({
+      loadContent: (text, name) => {
+        const safeName = name ? (name.endsWith('.md') ? name : `${name}.md`) : null;
+        return set((state) => ({
           documentText: text,
-          fileName: name,
+          fileName: safeName,
           isDirty: false,
           contentVersion: state.contentVersion + 1,
           wordCount: text.trim() ? text.trim().split(/\s+/).length : 0,
           viewMode: 'editor',
-        })),
+        }));
+      },
 
-      setFileName: (name) => set({ fileName: name }),
+      setFileName: (name) => {
+        const safeName = name ? (name.endsWith('.md') ? name : `${name}.md`) : null;
+        return set({ fileName: safeName });
+      },
       toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
       togglePreviewExpanded: () => set((state) => ({ isPreviewExpanded: !state.isPreviewExpanded })),
       toggleSettings: () => set((state) => ({ isSettingsOpen: !state.isSettingsOpen })),
-      setTheme: (theme) => set({ activeTheme: theme }),
-      setCover: (config) => set({ coverConfig: config }),
-      setPageConfig: (config) => set({ pageConfig: config }),
+      setTheme: (theme) => set({ activeTheme: theme, isDirty: true }),
+      setCover: (config) => set((state) => ({ 
+        coverConfig: config ? { ...(state.coverConfig || {}), ...config } : null, 
+        isDirty: true 
+      })),
+      setPageConfig: (config) => set({ pageConfig: config, isDirty: true }),
       setZoom: (level) => set({ zoomLevel: Math.max(50, Math.min(200, level)) }),
       setRenderedHTML: (html) => set({ renderedHTML: html }),
       setCursor: (line, col) => set({ cursorLine: line, cursorCol: col }),

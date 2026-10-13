@@ -61,6 +61,16 @@ export function GlobalHeader() {
     return () => document.removeEventListener('keydown', down);
   }, [saveNow]);
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
   const handleExport = async () => {
     try {
       setIsExporting(true);
@@ -87,7 +97,8 @@ export function GlobalHeader() {
       });
       
       if (res.status === 404) {
-        setFileName(trimmed);
+        const safeNew = trimmed.endsWith('.md') ? trimmed : `${trimmed}.md`;
+        setFileName(safeNew);
         setIsRenaming(false);
         return;
       }

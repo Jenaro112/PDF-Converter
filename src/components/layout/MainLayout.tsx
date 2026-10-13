@@ -10,7 +10,6 @@ import { Toolbar } from '../editor/Toolbar';
 import { Editor } from '../editor/Editor';
 import { Preview } from '../preview/Preview';
 import { CoverSettingsDrawer } from '../settings/CoverSettingsDrawer';
-import { AutosaveManager } from './AutosaveManager';
 import { FileSidebar } from './FileSidebar';
 import { Dashboard } from './Dashboard';
 import { useEditorStore } from '@/store/editor-store';
@@ -64,7 +63,6 @@ export function MainLayout() {
 
   return (
     <div ref={containerRef} className="flex flex-col h-screen bg-[#FAFAFA] text-[#171717] font-sans overflow-hidden">
-      <AutosaveManager />
       <GlobalHeader />
 
       <div className="flex-1 min-h-0 flex relative overflow-hidden px-4 pb-4">
