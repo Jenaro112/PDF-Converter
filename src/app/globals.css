@@ -196,12 +196,86 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .preview-content blockquote {
-  border-left: 3px solid #E5E7EB;
-  padding-left: 1rem;
-  color: #4B5563;
-  margin-left: 0;
-  margin-right: 0;
+  border-left: 3.5px solid var(--quote-border, #d4d4d8);
+  background-color: var(--quote-bg, #f9fafb);
+  padding: 0.65rem 1rem;
+  border-radius: 4px;
+  color: #374151;
+  margin: 0.75rem 0;
   font-style: normal;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.preview-content blockquote p {
+  margin-bottom: 0.35rem;
+}
+
+.preview-content blockquote p:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Callouts / Citas con colores especiales */
+.preview-content blockquote.callout {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin: 0.85rem 0 1rem 0;
+  border-width: 1px 1px 1px 4px;
+  border-style: solid;
+}
+
+/* CAUTION / ADVERTENCIA / DANGER / WARNING: Rojo especial */
+.preview-content blockquote.callout-caution,
+.preview-content blockquote.callout-warning {
+  border-color: #fecaca;
+  border-left-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+  color: #1f2937;
+}
+
+.preview-content blockquote.callout-caution p:first-child > strong:first-child,
+.preview-content blockquote.callout-warning p:first-child > strong:first-child {
+  color: #b91c1c;
+  font-size: 0.96em;
+}
+
+/* IMPORTANT / REGLA OBLIGATORIA: Violeta / Púrpura especial */
+.preview-content blockquote.callout-important {
+  border-color: #ddd6fe;
+  border-left-color: #8b5cf6 !important;
+  background-color: #f5f3ff !important;
+  color: #1f2937;
+}
+
+.preview-content blockquote.callout-important p:first-child > strong:first-child {
+  color: #6d28d9;
+  font-size: 0.96em;
+}
+
+/* NOTE / NOTA / INFO: Celeste / Azul */
+.preview-content blockquote.callout-note {
+  border-color: #bae6fd;
+  border-left-color: #0284c7 !important;
+  background-color: #f0f9ff !important;
+  color: #1f2937;
+}
+
+.preview-content blockquote.callout-note p:first-child > strong:first-child {
+  color: #0369a1;
+  font-size: 0.96em;
+}
+
+/* TIP / CONSEJO: Verde esmeralda */
+.preview-content blockquote.callout-tip {
+  border-color: #bbf7d0;
+  border-left-color: #10b981 !important;
+  background-color: #f0fdf4 !important;
+  color: #1f2937;
+}
+
+.preview-content blockquote.callout-tip p:first-child > strong:first-child {
+  color: #047857;
+  font-size: 0.96em;
 }
 
 .preview-content pre {

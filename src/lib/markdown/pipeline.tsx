@@ -13,8 +13,10 @@ import rehypeHighlight from 'rehype-highlight';
 import rehypeReact from 'rehype-react';
 import * as prod from 'react/jsx-runtime';
 import { remarkPastel } from './plugins/remark-pastel';
+import { remarkCallouts } from './plugins/remark-callouts';
 import { Mermaid } from '@/components/preview/Mermaid';
 import { StatsPlot } from '@/components/preview/StatsPlot';
+import { AlertTriangle, AlertCircle, Info, Lightbulb } from 'lucide-react';
 
 const production = { Fragment: prod.Fragment, jsx: prod.jsx, jsxs: prod.jsxs };
 
@@ -28,6 +30,7 @@ export function useMarkdownProcessor(text: string) {
         .use(remarkBreaks)
         .use(remarkGfm)
         .use(remarkMath) 
+        .use(remarkCallouts)
         .use(remarkPastel) 
         .use(remarkRehype, { allowDangerousHtml: true })
         .use(rehypeKatex) 
@@ -117,6 +120,60 @@ export function useMarkdownProcessor(text: string) {
                 return <span className="text-gray-400 italic text-sm">{props.alt || '(Cargando imagen...)'}</span>;
               }
               return <img {...props} />;
+            },
+            blockquote: (props: any) => {
+              const { className = '', children, ...rest } = props;
+              const isCallout = className.includes('callout');
+              const isCaution = className.includes('callout-caution') || className.includes('callout-warning');
+              const isImportant = className.includes('callout-important');
+              const isTip = className.includes('callout-tip');
+              const isNote = className.includes('callout-note');
+
+              if (isCallout) {
+                let icon = null;
+                if (isCaution) {
+                  icon = (
+                    <AlertTriangle
+                      className="callout-icon callout-icon-caution"
+                      style={{ width: '18px', height: '18px', minWidth: '18px', flexShrink: 0, marginTop: '2px', color: '#dc2626' }}
+                    />
+                  );
+                } else if (isImportant) {
+                  icon = (
+                    <AlertCircle
+                      className="callout-icon callout-icon-important"
+                      style={{ width: '18px', height: '18px', minWidth: '18px', flexShrink: 0, marginTop: '2px', color: '#7c3aed' }}
+                    />
+                  );
+                } else if (isTip) {
+                  icon = (
+                    <Lightbulb
+                      className="callout-icon callout-icon-tip"
+                      style={{ width: '18px', height: '18px', minWidth: '18px', flexShrink: 0, marginTop: '2px', color: '#059669' }}
+                    />
+                  );
+                } else if (isNote) {
+                  icon = (
+                    <Info
+                      className="callout-icon callout-icon-note"
+                      style={{ width: '18px', height: '18px', minWidth: '18px', flexShrink: 0, marginTop: '2px', color: '#0284c7' }}
+                    />
+                  );
+                }
+
+                return (
+                  <blockquote className={className} {...rest}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                      {icon}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        {children}
+                      </div>
+                    </div>
+                  </blockquote>
+                );
+              }
+
+              return <blockquote className={className} {...rest}>{children}</blockquote>;
             }
           }
         } as any);

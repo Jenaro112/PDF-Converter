@@ -24,7 +24,7 @@ coverConfig:
 activeTheme: minimal
 ---
 
-# **Resumen de Base de Datos — SQL, Vistas, Funciones y Triggers**
+# **Resumen de Base de Datos**
 
 ---
 
@@ -242,8 +242,8 @@ WHERE condicion;
   SET precio = precio * 1.20
   WHERE tipo = 'PERFUMERIA';
   ```
-- > [!CAUTION] **Advertencia de examen:**  
-  > La cláusula `WHERE` es opcional, pero si se omite, la actualización afectará a **todas las filas de la tabla**.
+> **Advertencia de examen:**  
+> La cláusula `WHERE` es opcional, pero si se omite, la actualización afectará a **todas las filas de la tabla**.
 
 ---
 
@@ -439,7 +439,7 @@ FROM empleado
 GROUP BY departamento_id;
 ```
 
-> [!IMPORTANT] **Regla obligatoria de `GROUP BY`:**  
+> **Regla obligatoria de `GROUP BY`:**  
 > Cualquier columna que aparezca en el `SELECT` y **no forme parte de una función de agregación**, **DEBE** incluirse obligatoriamente en la cláusula `GROUP BY`.
 
 ---
