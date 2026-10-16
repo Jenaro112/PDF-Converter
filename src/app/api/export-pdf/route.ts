@@ -14,8 +14,8 @@ export async function POST(req: Request) {
     
     const page = await browser.newPage();
     
-    // Configurar viewport para renderizado en alta calidad
-    await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
+    // Configurar viewport exacto para A4 (210mm x 297mm @ 96 DPI)
+    await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 });
     
     // Viajar a la página secreta de impresión
     // Nota: localhost:3000 asume que el servidor corre en el puerto por defecto
@@ -36,9 +36,10 @@ export async function POST(req: Request) {
     // Pequeño margen extra para garantizar que los gráficos Mermaid u otras cargas finalicen
     await new Promise(r => setTimeout(r, 2000));
     
-    // Imprimir a PDF sin márgenes (nuestro CSS ya se encarga de los márgenes)
+    // Imprimir a PDF respetando las dimensiones exactas de @page A4
     const pdfBuffer = await page.pdf({
       format: 'A4',
+      preferCSSPageSize: true,
       printBackground: true, // Fundamental para que salgan los colores y la portada azul
       margin: { top: 0, right: 0, bottom: 0, left: 0 }
     });

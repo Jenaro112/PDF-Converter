@@ -106,17 +106,30 @@ export function Paginator({ children }: { children: React.ReactNode }) {
         let count = 0;
         let hasHeading = false;
 
-        // Si el último elemento es un párrafo corto de intro (< 140px)
-        if (currentPageElements[idx].el.tagName === 'P' && currentPageElements[idx].height < 140) {
-          idx--;
-          count++;
-        }
-
-        // Acumula TODOS los encabezados contiguos que estén antes (H1, H2, H3, etc.)
-        while (idx >= 0 && isHeading(currentPageElements[idx].el)) {
-          hasHeading = true;
-          idx--;
-          count++;
+        // Recorrer hacia atrás acumulando encabezados y sus párrafos introductorios asociados
+        while (idx >= 0) {
+          const item = currentPageElements[idx];
+          if (isHeading(item.el)) {
+            hasHeading = true;
+            idx--;
+            count++;
+          } else if (item.el.tagName === 'P' && item.height < 140) {
+            // Incluir párrafo corto si está precedido inmediatamente por un encabezado o si ya hay un encabezado posterior
+            if (idx > 0 && isHeading(currentPageElements[idx - 1].el)) {
+              idx--;
+              count++;
+            } else if (hasHeading) {
+              idx--;
+              count++;
+            } else if (count === 0) {
+              idx--;
+              count++;
+            } else {
+              break;
+            }
+          } else {
+            break;
+          }
         }
 
         // Si no encontramos ningún encabezado, o si toda la página son solo estos elementos
@@ -148,10 +161,25 @@ export function Paginator({ children }: { children: React.ReactNode }) {
 
         // 1. Prevención preventiva de encabezados huérfanos antes de agregarlos si están al borde inferior
         if (isHeading(el) && currentHeight > 0 && currentHeight + elHeight + 60 > MAX_HEIGHT) {
-          newPages.push(currentPageHtml);
-          currentPageHtml = el.outerHTML;
-          currentHeight   = elHeight;
-          currentPageElements = [{ el, html: el.outerHTML, height: elHeight }];
+          const orphan = getTrailingOrphanChain();
+          if (orphan) {
+            currentPageElements = currentPageElements.slice(0, currentPageElements.length - orphan.count);
+            const remainingHtml = currentPageElements.map(item => item.html).join('');
+            if (remainingHtml.trim() !== '') {
+              newPages.push(remainingHtml);
+            }
+            currentPageHtml = orphan.orphanHtml + el.outerHTML;
+            currentHeight = orphan.orphanHeight + elHeight;
+            currentPageElements = [
+              { el: document.createElement('div'), html: orphan.orphanHtml, height: orphan.orphanHeight },
+              { el, html: el.outerHTML, height: elHeight }
+            ];
+          } else {
+            newPages.push(currentPageHtml);
+            currentPageHtml = el.outerHTML;
+            currentHeight   = elHeight;
+            currentPageElements = [{ el, html: el.outerHTML, height: elHeight }];
+          }
           return;
         }
 
@@ -403,8 +431,8 @@ export function Paginator({ children }: { children: React.ReactNode }) {
           style={{
             width: '170mm',
             boxSizing: 'border-box',
-            fontFamily: "'Inter', sans-serif",
-            color: '#2d2d2d',
+            fontFamily: "var(--font-family-content, 'Inter', sans-serif)",
+            color: "var(--text-color, #2d2d2d)",
             lineHeight: '1.6',
             fontSize: '11pt',
             textAlign: 'justify',
@@ -516,8 +544,8 @@ export function Paginator({ children }: { children: React.ReactNode }) {
                 right:  '20mm',
                 bottom: renderFooter ? '24mm' : '16mm',
                 overflow: 'hidden',
-                fontFamily: "'Inter', sans-serif",
-                color: '#2d2d2d',
+                fontFamily: "var(--font-family-content, 'Inter', sans-serif)",
+                color: "var(--text-color, #2d2d2d)",
                 lineHeight: '1.6',
                 fontSize: '11pt',
                 textAlign: 'justify',

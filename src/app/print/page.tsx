@@ -31,7 +31,7 @@ export default function PrintPage() {
   }
 
   return (
-    <div className="bg-white min-h-screen print:block">
+    <div className="bg-white min-h-screen print:block print:w-[210mm] print:m-0 print:p-0">
       {/* Inyectar variables de tema del documento */}
       <style dangerouslySetInnerHTML={{ __html: generateRootCSS(activeTheme) }} />
       
