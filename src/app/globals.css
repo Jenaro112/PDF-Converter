@@ -163,13 +163,17 @@ h1, h2, h3, h4, h5, h6 {
 .preview-content pre {
   background-color: #111827 !important; 
   color: #E5E7EB !important; 
-  padding: 1.25rem;
+  padding: 0.75rem 1rem;
   border-radius: 8px;
   overflow-x: auto;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.875rem;
-  margin-top: 1rem;
-  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
 }
 
 .preview-content code {
@@ -189,6 +193,9 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0;
   border-radius: 0;
   font-weight: normal;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
 }
 
 .preview-content img {
@@ -200,22 +207,54 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .preview-content table {
-  width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
+  table-layout: fixed !important;
   border-collapse: collapse;
   margin-top: 0.5rem;
   margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+  box-sizing: border-box;
 }
 
 .preview-content th,
 .preview-content td {
   border: 1px solid #E5E7EB;
-  padding: 0.45rem 0.75rem;
+  padding: 0.45rem 0.6rem;
   text-align: left;
+  vertical-align: top;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  box-sizing: border-box;
 }
 
 .preview-content th {
   background-color: #F9FAFB;
   font-weight: 600;
+}
+
+.preview-content td code,
+.preview-content th code {
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+/* Proporciones automáticas para tablas de 4 columnas en Markdown */
+.preview-content table:has(th:nth-child(4):last-child) th:nth-child(1),
+.preview-content table:has(td:nth-child(4):last-child) td:nth-child(1) {
+  width: 20%;
+}
+.preview-content table:has(th:nth-child(4):last-child) th:nth-child(2),
+.preview-content table:has(td:nth-child(4):last-child) td:nth-child(2) {
+  width: 22%;
+}
+.preview-content table:has(th:nth-child(4):last-child) th:nth-child(3),
+.preview-content table:has(td:nth-child(4):last-child) td:nth-child(3) {
+  width: 31%;
+}
+.preview-content table:has(th:nth-child(4):last-child) th:nth-child(4),
+.preview-content table:has(td:nth-child(4):last-child) td:nth-child(4) {
+  width: 27%;
 }
 
 .page-break {

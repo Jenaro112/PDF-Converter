@@ -124,6 +124,13 @@ export function Paginator({ children }: { children: React.ReactNode }) {
       const orphanHtml = orphanItems.map(item => item.html).join('');
       const orphanHeight = orphanItems.reduce((acc, item) => acc + item.height, 0);
 
+      // Si arrastrar estos elementos dejaría la página actual casi vacía (menos del 45% de la hoja),
+      // NO arrancar el encabezado para no dejar un hueco blanco gigante.
+      const remainingHeight = currentHeight - orphanHeight;
+      if (remainingHeight < MAX_HEIGHT * 0.45) {
+        return null;
+      }
+
       return { orphanHtml, orphanHeight, count };
     };
 
@@ -150,7 +157,7 @@ export function Paginator({ children }: { children: React.ReactNode }) {
       const elHeight    = rect.height + marginTop + marginBottom;
 
       // 1. Prevención preventiva de encabezados huérfanos antes de agregarlos
-      if (isHeading(el) && currentHeight > 0 && currentHeight + elHeight + 90 > MAX_HEIGHT) {
+      if (isHeading(el) && currentHeight > 0 && currentHeight + elHeight + 60 > MAX_HEIGHT) {
         newPages.push(currentPageHtml);
         currentPageHtml = el.outerHTML;
         currentHeight   = elHeight;
