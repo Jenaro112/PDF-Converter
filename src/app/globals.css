@@ -416,3 +416,36 @@ h1, h2, h3, h4, h5, h6 {
 .preview-content p .katex {
   line-height: 1.8;
 }
+
+
+/* ===================================================
+   Diagramas Mermaid: Vectoriales, Adaptativos y Centrados
+   =================================================== */
+.mermaid-container {
+  width: 100% !important;
+  margin: 1.5rem 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.75rem !important;
+  padding: 1rem !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.mermaid-svg-wrapper {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  overflow: hidden !important;
+}
+
+.mermaid-svg-wrapper svg {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 0 auto !important;
+}

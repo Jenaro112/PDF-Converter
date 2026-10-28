@@ -44,3 +44,7 @@ next-env.d.ts
 __pycache__/
 *.py[cod]
 *$py.class
+
+# scratch & temporary files
+scratch/
+tmp_modelo_imgs/

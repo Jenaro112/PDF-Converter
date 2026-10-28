@@ -404,8 +404,37 @@ export function Paginator({ children }: { children: React.ReactNode }) {
       });
     }
 
+    // Escuchar cuando los diagramas Mermaid terminen de renderizar su SVG
+    const handleMermaidRendered = () => {
+      if (!isCancelled) {
+        paginate();
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('mermaid-rendered', handleMermaidRendered);
+    }
+
+    // Observar cambios de tamaño en el contenedor de medición (para Mermaid, KaTeX, imágenes dinámicas)
+    let resizeTimer: any = null;
+    let ro: ResizeObserver | null = null;
+    if (measureRef.current && typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(() => {
+        if (isCancelled) return;
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          if (!isCancelled) paginate();
+        }, 60);
+      });
+      ro.observe(measureRef.current);
+    }
+
     return () => {
       isCancelled = true;
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('mermaid-rendered', handleMermaidRendered);
+      }
+      if (ro) ro.disconnect();
+      clearTimeout(resizeTimer);
     };
   }, [children, coverConfig]);
 

@@ -1,113 +1,107 @@
 'use client';
-import React, { useRef, useEffect, useState } from 'react';
-
-// Genera un HTML autónomo que carga Mermaid desde CDN en un iframe aislado
-function buildMermaidHTML(chart: string): string {
-  // Escapar caracteres especiales para evitar romper el HTML
-  const escaped = chart
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8"/>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { 
-    background: transparent; 
-    display: flex; 
-    justify-content: center; 
-    align-items: flex-start;
-    min-height: 100%;
-  }
-  .mermaid { 
-    max-width: 100%; 
-    display: flex; 
-    justify-content: center;
-  }
-  .mermaid svg { max-width: 100%; height: auto; }
-</style>
-</head>
-<body>
-<div class="mermaid">${escaped}</div>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
-<script>
-  mermaid.initialize({ 
-    startOnLoad: true, 
-    theme: 'base',
-    themeVariables: {
-      fontFamily: 'Inter, sans-serif',
-      primaryColor: '#faf8f5',
-      primaryTextColor: '#4a4543',
-      primaryBorderColor: '#e6e2dd',
-      lineColor: '#8c827a',
-    }
-  });
-
-  function notifyHeight() {
-    const h = document.documentElement.scrollHeight;
-    window.parent.postMessage({ type: 'mermaid-height', height: h }, '*');
-  }
-
-  // Esperar a que Mermaid inserte el SVG en el DOM y luego medir
-  const observer = new MutationObserver(function() {
-    const svg = document.querySelector('.mermaid svg');
-    if (svg) {
-      observer.disconnect();
-      // Esperar un frame más para que el layout esté completo
-      requestAnimationFrame(function() {
-        requestAnimationFrame(notifyHeight);
-      });
-      // También usar ResizeObserver por si el SVG cambia de tamaño
-      const ro = new ResizeObserver(notifyHeight);
-      ro.observe(svg);
-    }
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
-
-  // Fallback: notificar cada segundo por si el observer no dispara
-  setTimeout(notifyHeight, 800);
-  setTimeout(notifyHeight, 2000);
-</script>
-</body>
-</html>`;
-}
+import React, { useEffect, useState, useId } from 'react';
 
 export function Mermaid({ chart }: { chart: string }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [height, setHeight] = useState(400);
+  const [svgHtml, setSvgHtml] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+  const reactId = useId().replace(/[^a-zA-Z0-9]/g, '');
 
-  // Debouncear el chart: el iframe solo se recarga cuando el usuario para de tipear 800ms
+  // Debouncear el chart: solo se re-renderiza cuando el usuario hace una pausa
   const [debouncedChart, setDebouncedChart] = useState(chart);
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedChart(chart), 800);
+    const timer = setTimeout(() => setDebouncedChart(chart), 250);
     return () => clearTimeout(timer);
   }, [chart]);
 
-  const srcDoc = buildMermaidHTML(debouncedChart);
-
-  // Escuchar mensajes del iframe para ajustar la altura dinámicamente
   useEffect(() => {
-    function handleMessage(e: MessageEvent) {
-      if (e.data?.type === 'mermaid-height' && typeof e.data.height === 'number') {
-        const newHeight = Math.max(e.data.height + 32, 120);
-        setHeight(newHeight);
+    let isCancelled = false;
+
+    async function renderMermaid() {
+      if (!debouncedChart || !debouncedChart.trim()) {
+        setSvgHtml('');
+        return;
+      }
+
+      try {
+        const mermaid = (await import('mermaid')).default;
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'base',
+          flowchart: {
+            useMaxWidth: true,
+            htmlLabels: true,
+            curve: 'basis',
+            nodeSpacing: 30,
+            rankSpacing: 35,
+            padding: 12,
+          },
+          themeVariables: {
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: '13px',
+            darkMode: false,
+            background: '#ffffff',
+            mainBkg: '#ffffff',
+            primaryColor: '#f8fafc',
+            primaryTextColor: '#0f172a',
+            primaryBorderColor: '#94a3b8',
+            lineColor: '#64748b',
+            secondaryColor: '#f1f5f9',
+            secondaryTextColor: '#0f172a',
+            secondaryBorderColor: '#cbd5e1',
+            edgeLabelBackground: '#ffffff',
+            nodeBorder: '#cbd5e1',
+            nodeTextColor: '#0f172a',
+          },
+        });
+
+        // ID único para cada render de Mermaid
+        const currentId = `mermaid_${reactId}_${Date.now()}`;
+        const cleanChart = debouncedChart.trim();
+        const { svg } = await mermaid.render(currentId, cleanChart);
+
+        if (!isCancelled) {
+          setSvgHtml(svg);
+          setError(null);
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('mermaid-rendered'));
+          }
+        }
+      } catch (err: any) {
+        if (!isCancelled) {
+          console.warn('Mermaid rendering notice:', err?.message || err);
+          setError(err?.message || 'Error renderizando diagrama');
+        }
       }
     }
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
+
+    renderMermaid();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [debouncedChart, reactId]);
+
+  if (error && !svgHtml) {
+    return (
+      <div className="my-4 rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-700">
+        <strong>Error en diagrama Mermaid:</strong> {error}
+      </div>
+    );
+  }
+
+  if (!svgHtml) {
+    return (
+      <div className="mermaid-container my-6 rounded-2xl border border-gray-100 bg-gray-50/50 p-6 flex justify-center items-center text-xs text-gray-400">
+        Cargando diagrama...
+      </div>
+    );
+  }
 
   return (
-    <div className="my-6 rounded-xl border border-[var(--border)] bg-[#fdfbf8] shadow-sm w-full overflow-hidden">
-      <iframe
-        ref={iframeRef}
-        srcDoc={srcDoc}
-        sandbox="allow-scripts"
-        style={{ width: '100%', height: `${height}px`, border: 'none', display: 'block' }}
-        title="Diagrama Mermaid"
+    <div className="mermaid-container my-6 rounded-2xl border border-gray-200 bg-white shadow-sm w-full overflow-hidden p-4 flex justify-center items-center">
+      <div
+        className="mermaid-svg-wrapper w-full flex justify-center items-center"
+        dangerouslySetInnerHTML={{ __html: svgHtml }}
       />
     </div>
   );

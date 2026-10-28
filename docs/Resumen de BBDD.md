@@ -2,7 +2,7 @@
 coverConfig:
   showCover: false
   title: Resumen de BBDD
-  subtitle: 'SQL, Vistas, Funciones y Triggers'
+  subtitle: 'SQL, Vistas, Funciones, Triggers y Transacciones'
   materia: Bases de Datos
   coverStyle: blanca_simple
   showLogo: true
@@ -807,9 +807,173 @@ EXECUTE PROCEDURE func_e();
 
 ---
 
-## **9. Cuadros Comparativos y Resumen Rápido para el Parcial**
+## **9. Integridad de los Datos, Transacciones y Concurrencia**
 
-### **9.1 DDL vs. DML**
+### **9.1 Conceptos Fundamentales: Integridad, Consistencia y Recuperación**
+
+En la teoría de bases de datos relacionales, la preservación de información confiable frente a accesos simultáneos y caídas del sistema descansa sobre tres conceptos interconectados:
+
+- ==Integridad==(celeste):
+  - **Definición formal:** Es la cualidad de los datos de **mantenerse enteros, completos y fieles a sus principios o definiciones**.
+  - Impide que la base de datos almacene información contradictoria, incompleta o que viole las reglas de negocio declaradas en el modelo.
+- ==Consistencia==(amarillo):
+  - **Definición formal:** Cualidad de lo que es **estable, sólido, coherente, o que mantiene una regularidad en el tiempo**.
+  - Un estado es consistente si satisface todas las restricciones de integridad (claves primarias, foráneas, tipos y reglas lógicas) en todo momento observable.
+- ==Recuperación (Recovery)==(verde):
+  - **Definición formal:** Mecanismo del DBMS que consiste fundamentalmente en el **reestablecimiento de la base de datos a un estado consistente** después de haber sufrido cualquier tipo de fallo o interrupción.
+
+#### **Causas Principales de Fallas e Inconsistencia:**
+Una Base de Datos puede pasar de un estado válido a un estado inconsistente debido a cinco causas principales:
+1. **Falla en el sistema:** Caída imprevista del software del DBMS o del sistema operativo (*system crash*).
+2. **Corte de luz:** Interrupción abrupta de energía que imposibilita escribir en disco los datos retenidos en la memoria volátil.
+3. **Problemas de hardware:** Averías físicas en memoria principal (RAM) o sectores defectuosos en medios de almacenamiento secundario (disco rígido / SSD).
+4. **Error de diseño / implementación:** Deficiencias en el esquema relacional o bugs en el código de las aplicaciones cliente.
+5. **Concurrencia desregulada:** Múltiples usuarios ejecutando operaciones simultáneas sobre los mismos datos sin mecanismos adecuados de sincronización.
+
+---
+
+### **9.2 Concepto Teórico de Transacción y sus Ventajas**
+
+- **Definición formal:**  
+  Una ==Transacción==(celeste) es una **unidad lógica de procesamiento** de una Base de Datos, compuesta por una **secuencia de una o más operaciones de acceso** (inserción `INSERT`, modificación `UPDATE`, borrado `DELETE`, consulta `SELECT`), cuyo resultado final está regido por la regla estricta de que **se ejecuten todas o ninguna de ellas**.
+
+#### **Ventajas e Importancia:**
+- **Riesgo operativo sin transacciones:**  
+  Si un conjunto de operaciones vinculadas falla a mitad de camino sin estar encapsulado en una transacción, se corre el riesgo inminente de dejar la información en un estado inconsistente.  
+  - *Ejemplo conceptual:* En una transferencia bancaria, si el dinero es descontado de la cuenta de origen pero el sistema se cae antes de acreditarlo en la de destino, el saldo total queda desfasado y el dinero se pierde.
+- **Garantía transaccional:**  
+  Al agrupar las operaciones dentro de una transacción, el motor garantiza que **todas las operaciones se completen satisfactoriamente o no se aplique ninguna**, preservando el estado consistente anterior al intento.
+
+---
+
+### **9.3 Las Propiedades ACID**
+
+Todo Sistema Gestor de Bases de Datos Relacionales (RDBMS) debe garantizar cuatro propiedades fundamentales conocidas como el estándar ==ACID==(rosa):
+
+| Propiedad | Denominación | Definición Teórica Rigurosa |
+| :--- | :--- | :--- |
+| **A** | ==Atomicidad (Atomicity)==(celeste) | Implica que una transacción es **"todo o nada"**. Si cualquier operación interna falla o es abortada, la transacción completa se revierte por entero y la base de datos queda exactamente en el estado en que estaba antes de iniciar. |
+| **C** | ==Consistencia (Consistency)==(amarillo) | Asegura que una transacción **lleva la base de datos de un estado válido a otro estado igualmente válido**. Todas las reglas, restricciones de integridad referencial y dominios se respetan estrictamente durante toda la transacción. |
+| **I** | ==Aislamiento (Isolation)==(verde) | Garantiza que **las transacciones simultáneas no entren en conflicto entre sí**. Si dos usuarios intentan actualizar el mismo registro al mismo tiempo, el aislamiento evita que los cambios de uno sobrescriban o corrompan los del otro. Se calibra mediante distintos *niveles de aislamiento*. |
+| **D** | ==Durabilidad (Durability)==(naranja) | Garantiza que **los cambios efectuados son permanentes e irreversibles** una vez que se confirma la transacción (`COMMIT`), resistiendo incluso ante un fallo imprevisto del sistema o del hardware. |
+
+> 💡 **En criollo (¿Qué significa cada propiedad para el examen?):**
+> - **Atomicidad:** O pasa todo o no pasa nada; no existen transacciones "por la mitad".
+> - **Consistencia:** No se pueden romper las reglas de la base; el balance contable final debe ser matemáticamente coherente con el inicial.
+> - **Aislamiento:** Cada transacción se ejecuta aislada, como si fuera la única presente en el servidor.
+> - **Durabilidad:** Si el motor confirmó la operación, los datos sobrevivirán aunque se desenchufe el servidor.
+
+---
+
+### **9.4 Comandos de Control Transaccional (TCL)**
+
+El ciclo de vida de una transacción se gobierna mediante comandos de control transaccional:
+
+#### **1. Comandos Principales de Ciclo:**
+- `BEGIN` / `BEGIN TRANSACTION`:  
+  Marca formalmente el **inicio de una transacción**. A partir de este momento, todas las instrucciones SQL ejecutadas forman parte de la misma unidad de trabajo indivisible.
+- `COMMIT`:  
+  **Finaliza con éxito la transacción**, haciendo permanentes todos los cambios en la base de datos y liberando los bloqueos adquiridos.
+- `ROLLBACK`:  
+  **Deshace todos los cambios** realizados durante la transacción, devolviendo la base de datos a su estado previo exacto en caso de error, anomalía o fallo.
+
+#### **2. Puntos de Recuperación Intermedios (Savepoints):**
+Los *savepoints* permiten definir puntos de control intermedios dentro de una transacción para habilitar **reversiones parciales**:
+- `SAVEPOINT <nombre>`:  
+  Genera un punto de recuperación etiquetado con un nombre dentro de la transacción activa.
+- `ROLLBACK TO <nombre>`:  
+  Revierte las operaciones realizadas únicamente a partir del savepoint indicado, **sin deshacer las operaciones previas** al mismo.
+- `RELEASE SAVEPOINT <nombre>`:  
+  Destruye el punto de recuperación y libera los recursos del motor asociados a él, manteniendo las modificaciones vigentes.
+
+---
+
+### **9.5 Concurrencia y Mecanismos de Bloqueo (Locks)**
+
+#### **Naturaleza del Control de Concurrencia:**
+- Los DBMS permiten que **múltiples usuarios y procesos se conecten a la base de datos y ejecuten transacciones simultáneamente**.
+- Es imperativo administrar y sincronizar el acceso concurrente para preservar en todo momento la integridad y consistencia de los datos.
+- **Problema de concurrencia no controlada (*Lost Update*):**  
+  Si dos transacciones ($T_1$ y $T_2$) leen y escriben sobre el mismo registro en paralelo sin sincronización, el valor escrito por una puede sobreescribir inadvertidamente el valor modificado por la otra, perdiéndose actualizaciones de manera irrecuperable.
+
+#### **Mecanismos de Bloqueo (*Locking*):**
+Controlan y restringen el acceso a los recursos de la base de datos para garantizar la integridad transaccional:
+
+1. ==Bloqueos Compartidos (Shared Locks / S-Lock)==(amarillo):
+   - Permiten que **varias transacciones lean un mismo recurso simultáneamente**.
+   - **Evitan modificaciones concurrentes:** Mientras exista un bloqueo compartido activo, ninguna otra transacción puede escribir o modificar el recurso, manteniendo la consistencia de lectura.
+2. ==Bloqueos Exclusivos (Exclusive Locks / X-Lock)==(rojo):
+   - Restringen totalmente el acceso de terceros al recurso bloqueado.
+   - Garantizan **escritura exclusiva**, impidiendo que cualquier otra transacción pueda leer o modificar el dato hasta que la transacción propietaria finalice.
+
+---
+
+### **9.6 Anomalías y Fenómenos de Lectura Concurrente**
+
+Cuando varias transacciones acceden a los mismos datos en forma concurrente sin un aislamiento estricto, pueden originarse cuatro anomalías teóricas:
+
+1. ==Lectura Sucia (Dirty Read)==(rojo):  
+   Ocurre cuando una transacción lee datos modificados por otra transacción que **aún no han sido confirmados (`UNCOMMITTED`)**. Si la transacción que modificó el dato luego hace un `ROLLBACK`, la transacción lectora habrá operado sobre datos irreales que nunca existieron formalmente en el sistema.
+2. ==Lectura No Repetible (Non-Repeatable Read)==(naranja):  
+   Ocurre cuando una transacción lee un mismo registro dos veces y obtiene valores diferentes, porque una transacción concurrente modificó dicho registro y realizó un `COMMIT` entre ambas lecturas.
+3. ==Lectura Fantasma (Phantom Read)==(amarillo):  
+   Ocurre cuando una transacción ejecuta dos veces una misma consulta basada en un rango de condiciones (por ejemplo, buscar filas con un cierto filtro) y, en la segunda lectura, **aparecen nuevas tuplas ("filas fantasma")**, debido a que otra transacción insertó nuevos registros que cumplen la condición y confirmó su transacción.
+4. ==Anomalía de Serialización (Serialization Anomaly)==(morado):  
+   Ocurre cuando el resultado colectivo de ejecutar un conjunto de transacciones concurrentes no coincide con **ningún orden secuencial posible** de haber ejecutado dichas transacciones una a una.
+
+---
+
+### **9.7 Niveles de Aislamiento (Isolation Levels)**
+
+Los niveles de aislamiento determinan **cómo interactúan las transacciones entre sí** y permiten equilibrar la exigencia de consistencia de los datos con el rendimiento del motor:
+
+#### **1. Read Uncommitted:**
+- Permite lecturas sucias (lectura de datos no confirmados).
+- Maximiza el rendimiento del sistema al reducir la sobrecarga de bloqueos.
+- *Particularidad en PostgreSQL:* PostgreSQL **no admite lecturas sucias** en su arquitectura; si se solicita este nivel, internamente opera tratándolo como `Read Committed`.
+
+#### **2. Read Committed:**
+- **Evita lecturas sucias** (solo se leen datos ya confirmados mediante `COMMIT`).
+- Es el nivel **predeterminado en la gran mayoría de los DBMS relacionales** (como PostgreSQL y Microsoft SQL Server).
+- Cada instrucción individual dentro de la transacción visualiza una instantánea (*snapshot*) tomada al inicio de dicha instrucción.
+
+#### **3. Repeatable Read:**
+- Garantiza que cualquier dato leído durante la transacción permanezca invariable hasta su conclusión.
+- Cada consulta ve una instantánea del estado de la base de datos **tomada al inicio de la primera instrucción de la transacción** (a diferencia de `Read Committed`, que renueva la instantánea en cada instrucción).
+- *Particularidad en PostgreSQL:* En PostgreSQL, este nivel **tampoco permite lectura fantasma**, ofreciendo una protección superior a la exigida por el estándar general.
+
+#### **4. Serializable:**
+- **Garantiza el nivel más alto de consistencia e integridad**, aislando por completo a las transacciones entre sí como si se ejecutaran en estricta secuencia cronológica.
+- Elimina la totalidad de los fenómenos y anomalías transaccionales.
+- *Contrapartida:* Puede reducir la concurrencia e incrementar los bloqueos y abortos por conflicto.
+
+#### **Matriz Oficial de Niveles de Aislamiento vs. Anomalías:**
+
+| Nivel de Aislamiento | Lectura Sucia (*Dirty Read*) | Lectura No Repetible (*Non-repeatable*) | Lectura Fantasma (*Phantom Read*) | Anomalía de Serialización |
+| :--- | :---: | :---: | :---: | :---: |
+| **Read Uncommitted** | Permitido *(No en PostgreSQL)* | Posible | Posible | Posible |
+| **Read Committed** *(Default)* | **No es posible** | Posible | Posible | Posible |
+| **Repeatable Read** | **No es posible** | **No es posible** | Permitido *(No en PostgreSQL)* | Posible |
+| **Serializable** | **No es posible** | **No es posible** | **No es posible** | **No es posible** |
+
+---
+
+### **9.8 Manejo de Errores y Logs de Recuperación**
+
+Para que la atomicidad y la durabilidad se sostengan ante imprevistos, los DBMS integran mecanismos sistemáticos de manejo de excepciones y recuperación:
+
+- **Manejo Estructurado de Errores:**  
+  Un manejo de errores eficaz asegura que las transacciones **se completen correctamente o fallen de forma controlada**. Mediante bloques estructurados de captura de excepciones (`BEGIN TRY ... BEGIN CATCH`), si se produce un fallo se intercepta dinámicamente el error y se ejecuta una instrucción `ROLLBACK` para anular la transacción.
+- **Registro de Transacciones en Disco (Transaction Logs / WAL):**  
+  El DBMS mantiene un **registro continuo mediante logs persistentes en disco** para rastrear todos los estados y cambios antes de volcarlos definitivamente en las tablas. Este mecanismo permite auditar errores y reconstruir el estado consistente de la base de datos ante una caída intempestiva (rehaciendo cambios confirmados y deshaciendo transacciones inconclusas).
+
+\newpage
+
+---
+
+## **10. Cuadros Comparativos y Resumen Rápido para el Parcial**
+
+### **10.1 DDL vs. DML**
 
 | Aspecto | DDL (Definición de Datos) | DML (Manipulación de Datos) |
 | :--- | :--- | :--- |
@@ -817,7 +981,7 @@ EXECUTE PROCEDURE func_e();
 | **Comandos Principales** | `CREATE`, `ALTER`, `DROP`, `TRUNCATE` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` |
 | **Nivel de Afectación** | Estructuras de tablas, esquemas y vistas | Filas y registros de las tablas |
 
-### **9.2 Cláusula `WHERE` vs. Cláusula `HAVING`**
+### **10.2 Cláusula `WHERE` vs. Cláusula `HAVING`**
 
 | Criterio | `WHERE` | `HAVING` |
 | :--- | :--- | :--- |
@@ -827,7 +991,7 @@ EXECUTE PROCEDURE func_e();
 
 \newpage
 
-### **9.3 Vistas vs. Funciones vs. Triggers**
+### **10.3 Vistas vs. Funciones vs. Triggers**
 
 | Característica | Vista (`VIEW`) | Función (`FUNCTION`) | Trigger (`TRIGGER`) |
 | :--- | :--- | :--- | :--- |
@@ -837,7 +1001,7 @@ EXECUTE PROCEDURE func_e();
 | **Tuplas `NEW` / `OLD`** | No | No | **Sí** (valores entrantes y previos) |
 | **Objetivo Principal** | Simplificar consultas y dar seguridad | Encapsular cálculos y reutilizar algoritmos | **Imponer integridad y validar reglas de negocio** |
 
-### **9.4 Matriz de Tuplas `OLD` y `NEW` en Triggers**
+### **10.4 Matriz de Tuplas `OLD` y `NEW` en Triggers**
 
 | Operación DML | ¿Existe `OLD`? | ¿Existe `NEW`? | ¿Qué representa cada una? |
 | :---: | :---: | :---: | :--- |
@@ -845,10 +1009,22 @@ EXECUTE PROCEDURE func_e();
 | `UPDATE` | $\checkmark$ | $\checkmark$ | `OLD` contiene la fila original; `NEW` la fila modificada. |
 | `DELETE` | $\checkmark$ | $\times$ (*NULL*) | `OLD` contiene los datos de la fila eliminada. |
 
-### **9.5 5 Puntos Clave "No Olvidar" para el Examen**
+### **10.5 Bloqueo Compartido vs. Bloqueo Exclusivo**
+
+| Criterio | Bloqueo Compartido (*Shared Lock / S-Lock*) | Bloqueo Exclusivo (*Exclusive Lock / X-Lock*) |
+| :--- | :--- | :--- |
+| **Propósito Principal** | Operaciones de lectura concurrente | Operaciones de modificación y escritura (`INSERT`, `UPDATE`, `DELETE`) |
+| **Permite otros lectores** | **Sí**, múltiples transacciones pueden leer a la vez | **No**, prohíbe tanto lecturas como escrituras ajenas |
+| **Permite otros escritores** | **No**, previene modificaciones durante la lectura | **No**, garantiza acceso y modificación exclusiva |
+
+### **10.6 Puntos Clave "No Olvidar" para el Examen**
 
 1. **`DELETE` sin `WHERE`:** Vacía la tabla eliminando todas sus tuplas, pero la estructura de la tabla se mantiene intacta en el catálogo (`DROP TABLE` elimina tanto los datos como la definición de la tabla).
 2. **`SELECT DISTINCT`:** Por defecto SQL retorna todas las filas incluyendo duplicados (`ALL`); para filtrar filas repetidas y dejar solo valores únicos en el resultado debe especificarse explícitamente `DISTINCT`.
 3. **`WHERE` vs. `HAVING`:** `WHERE` filtra filas individuales *antes* del agrupamiento y no admite funciones agregadas; `HAVING` filtra grupos consolidados *después* del `GROUP BY` y opera directamente sobre condiciones con funciones de agregación (`AVG`, `COUNT`, `SUM`, etc.).
 4. **Comodines en `LIKE`:** `%` reemplaza cero o múltiples caracteres continuos; `_` reemplaza exactamente un único carácter posicional.
 5. **Estructura de Triggers en PostgreSQL:** Siempre requiere crear primero una función con `RETURNS TRIGGER` escrita en `plpgsql`, y luego la sentencia `CREATE TRIGGER ... ON tabla FOR EACH ROW EXECUTE PROCEDURE nombre_funcion()`.
+6. **Propiedades ACID:** La **Atomicidad** es "todo o nada" (`ROLLBACK`), la **Consistencia** garantiza transitar entre estados válidos respetando reglas, el **Aislamiento** evita que transacciones concurrentes colisionen, y la **Durabilidad** asegura que los cambios confirmados con `COMMIT` persistan ante caídas de energía o fallos de hardware.
+7. **Nivel de Aislamiento Predeterminado:** En la mayoría de los motores de bases de datos (PostgreSQL y SQL Server), el nivel por defecto es `READ COMMITTED`.
+8. **Comportamiento Especial de PostgreSQL:** En PostgreSQL el nivel `Read Uncommitted` no permite lecturas sucias (opera como `Read Committed`), y el nivel `Repeatable Read` previene la lectura fantasma.
+9. **Savepoints y Reversión Parcial:** `SAVEPOINT` marca un punto intermedio, `ROLLBACK TO <nombre>` deshace únicamente los cambios posteriores a ese punto sin anular la transacción entera, y `RELEASE SAVEPOINT` libera la marca sin revertir cambios.
